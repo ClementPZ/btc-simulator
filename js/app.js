@@ -22,7 +22,8 @@ function tick() {
       if (Math.abs(price - livePrice) < livePrice * 0.002) {
         price = livePrice;
         priceMode = 'live';
-        document.getElementById('sim-banner').classList.add('hidden');
+        document.getElementById('sim-pill').classList.remove('visible');
+        document.getElementById('live-pill').style.display = '';
         addLog(t('backLiveLog'));
       }
     }
@@ -75,7 +76,8 @@ document.getElementById('sim-back-btn').addEventListener('click', () => {
   shock = 0;
   pendingDcaOrders = [];
   rememberedSimMode = null;
-  document.getElementById('sim-banner').classList.add('hidden');
+  document.getElementById('sim-pill').classList.remove('visible');
+  document.getElementById('live-pill').style.display = '';
   addLog(t('backLiveLog'));
 });
 

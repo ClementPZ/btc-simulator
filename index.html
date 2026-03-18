@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bitcoin Simulator — March 18, 2026</title>
-<script src="https://unpkg.com/lightweight-charts@5.0.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -26,7 +26,8 @@
   </div>
   <div class="header-right">
     <div class="ws-status" id="ws-status"><div class="ws-dot"></div><span id="ws-label" data-i18n="connecting">Connecting…</span></div>
-    <div class="live-pill"><div class="live-dot"></div><span id="price-source" data-i18n="livePrice">Live price</span></div>
+    <div class="live-pill" id="live-pill"><div class="live-dot"></div><span id="price-source" data-i18n="livePrice">Live price</span></div>
+    <div class="sim-pill" id="sim-pill"><span class="sim-pill-text" id="sim-pill-text">Simulation</span><button class="sim-back-inline" id="sim-back-btn">↩ Live</button></div>
     <div class="fomc-pill" data-i18n="fomcPill">FOMC · 2pm ET today</div>
   </div>
 </div>
@@ -39,15 +40,12 @@
     <div class="tmeta"><span data-i18n="mktCap">Market Cap</span><strong id="m-cap">—</strong></div>
     <div class="tmeta"><span data-i18n="nasdaq">Nasdaq (close 17/3)</span><strong class="up">22,479 +0.47%</strong></div>
     <div class="tmeta"><span data-i18n="wti">WTI Oil</span><strong class="dn">$97.00 +3.7%</strong></div>
-    <div class="tmeta"><span data-i18n="fedRate">Fed Rate</span><strong style="color:var(--orange);">3.50–3.75%</strong></div>
+    <div class="tmeta"><span data-i18n="fedRate">Fed Rate</span><strong style="color:var(--text);">3.50–3.75%</strong></div>
   </div>
 </div>
 
-<!-- SIM BANNER -->
-<div class="sim-banner hidden" id="sim-banner">
-  <span id="sim-banner-text"></span>
-  <button class="sim-back-btn" id="sim-back-btn" data-i18n="backToLive">↩ Back to live price</button>
-</div>
+<!-- SIM BANNER (legacy hidden, replaced by sim-pill in header) -->
+<div class="sim-banner" id="sim-banner" aria-hidden="true"></div>
 
 <!-- TRADE WIDGET -->
 <div class="trade-widget">
@@ -146,7 +144,7 @@
   <div class="met"><div class="ml" data-i18n="open">Open</div><div class="mv" id="m-open">—</div></div>
   <div class="met"><div class="ml" data-i18n="high">High 24h</div><div class="mv" id="m-high">—</div></div>
   <div class="met"><div class="ml" data-i18n="low">Low 24h</div><div class="mv" id="m-low">—</div></div>
-  <div class="met"><div class="ml">FedWatch Hold</div><div class="mv" style="color:var(--orange);">98.9%</div></div>
+  <div class="met"><div class="ml">FedWatch Hold</div><div class="mv">98.9%</div></div>
   <div class="met"><div class="ml" data-i18n="dominance">BTC Dominance</div><div class="mv">59.1%</div></div>
 </div>
 

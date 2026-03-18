@@ -58,10 +58,13 @@ function applyEvent(e, bull, mode) {
   shock += e.s;
   priceMode = mode === 'free' ? 'sim_free' : 'sim_return';
   if (mode === 'return') simReturnTimer = 66;
-  const banner = document.getElementById('sim-banner');
-  banner.classList.remove('hidden');
-  document.getElementById('sim-banner-text').textContent =
-    (mode === 'free' ? t('simFree') : t('simReturn')) + ' — ' + e.n + ' (' + (e.s > 0 ? '+' : '') + e.s + '%)';
+  // Show sim-pill in header, hide live-pill
+  const simPill = document.getElementById('sim-pill');
+  const livePill = document.getElementById('live-pill');
+  const simText = document.getElementById('sim-pill-text');
+  if (simText) simText.textContent = (mode === 'free' ? t('simFree') : t('simReturn')) + ' — ' + e.n + ' (' + (e.s > 0 ? '+' : '') + e.s + '%)';
+  if (simPill) simPill.classList.add('visible');
+  if (livePill) livePill.style.display = 'none';
   const sg = e.s > 0 ? '+' : '';
   addLog((bull ? '🟢 BULL' : '🔴 BEAR') + ' [' + (mode === 'free' ? 'free' : 'return') + '] — ' + e.n + ' (' + sg + e.s + '%)');
 }

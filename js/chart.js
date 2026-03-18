@@ -68,6 +68,7 @@ const tvChart = LightweightCharts.createChart(chartContainer, {
 });
 
 const candleSeries = tvChart.addCandlestickSeries({
+  // v4 API — compatible with lightweight-charts@4.2.0
   upColor: '#4ade80',
   downColor: '#f87171',
   borderUpColor: '#4ade80',
