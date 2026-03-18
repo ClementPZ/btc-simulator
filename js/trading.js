@@ -110,6 +110,10 @@ function executeSingleOrder(type, qty) {
   }
   updatePort();
   updateTraderProfile();
+  // Mark next pending DCA as triggered in queue
+  if (pendingDcaOrders.length > 0) {
+    markQueueOrderTriggered(pendingDcaOrders[0].targetPrice);
+  }
 }
 
 // ── Portfolio ──
@@ -129,6 +133,7 @@ function updatePort() {
 }
 
 // ── Fear & Greed ──
+let fgScore = 0, fgName = '';
 async function fetchFearGreed() {
   try {
     const r = await fetch('https://api.alternative.me/fng/?limit=8');
@@ -139,19 +144,19 @@ async function fetchFearGreed() {
     const now  = entries[0];
     const prev = entries[1] || now;
     const weekAvg = Math.round(entries.slice(0,7).reduce((s,e) => s + parseInt(e.value), 0) / Math.min(entries.length, 7));
-    const score = parseInt(now.value);
-    const name  = now.value_classification;
-    const barColor  = score < 25 ? '#f87171' : score < 46 ? '#facc15' : score < 75 ? '#c8920a' : '#4ade80';
-    const nameColor = score < 25 ? '#f87171' : score < 46 ? '#facc15' : score < 75 ? '#c8920a' : '#4ade80';
-    document.getElementById('fg-score').textContent = score;
+    fgScore = parseInt(now.value);
+    fgName  = now.value_classification;
+    const nameColor = fgScore < 25 ? '#f87171' : fgScore < 46 ? '#facc15' : fgScore < 75 ? '#c8920a' : '#4ade80';
+    document.getElementById('fg-score').textContent = fgScore;
     const nameEl = document.getElementById('fg-name');
-    nameEl.textContent = name;
+    nameEl.textContent = fgName;
     nameEl.style.color = nameColor;
-    const bar = document.getElementById('fg-bar');
-    bar.style.width = score + '%';
-    bar.style.background = barColor;
     document.getElementById('fg-prev').textContent = prev.value;
     document.getElementById('fg-week').textContent = weekAvg;
+    // Animate needle: score 0-100 maps to -90deg (fear) ... +90deg (greed)
+    const deg = (fgScore / 100) * 180 - 90;
+    const needle = document.getElementById('fg-needle');
+    if (needle) needle.setAttribute('transform', 'rotate(' + deg + ' 80 80)');
   } catch(e) {}
 }
 fetchFearGreed();
@@ -190,6 +195,88 @@ function updateTraderProfile() {
   }
 }
 
+// ── Order confirm modal ──
+let pendingOrderAction = null;
+
+function showOrderConfirm(type, qty, usdValue, dcaCount) {
+  return new Promise(resolve => {
+    const isBuy = type === 'buy';
+    const colClass = isBuy ? 'oc-val-buy' : 'oc-val-sell';
+    document.getElementById('oc-title').textContent = isBuy ? 'Confirm BUY order' : 'Confirm SELL order';
+    const typeEl = document.getElementById('oc-type');
+    typeEl.textContent = isBuy ? 'BUY BTC' : 'SELL BTC';
+    typeEl.className = 'oc-val ' + colClass;
+    document.getElementById('oc-qty').textContent = qty.toFixed(6) + ' BTC';
+    document.getElementById('oc-price').textContent = fmt(price);
+    document.getElementById('oc-total').textContent = fmt(Math.round(usdValue));
+    const dcaRow = document.getElementById('oc-dca-row');
+    if (dcaCount > 1) {
+      dcaRow.style.display = 'flex';
+      document.getElementById('oc-dca').textContent = dcaCount + ' staggered orders';
+    } else { dcaRow.style.display = 'none'; }
+    // Fear & Greed context
+    const fgEl = document.getElementById('oc-fg-score');
+    const fgColor = fgScore < 25 ? '#f87171' : fgScore < 46 ? '#facc15' : fgScore < 75 ? '#c8920a' : '#4ade80';
+    fgEl.textContent = fgScore > 0 ? fgScore + ' — ' + fgName : '—';
+    fgEl.style.color = fgColor;
+    const confirmBtn = document.getElementById('oc-confirm');
+    confirmBtn.className = 'oc-confirm ' + (isBuy ? 'oc-confirm-buy' : 'oc-confirm-sell');
+    confirmBtn.textContent = isBuy ? 'BUY BTC' : 'SELL BTC';
+    document.getElementById('order-confirm-overlay').classList.remove('hidden');
+    const onConfirm = () => { cleanup(); resolve(true); };
+    const onCancel  = () => { cleanup(); resolve(false); };
+    function cleanup() {
+      document.getElementById('order-confirm-overlay').classList.add('hidden');
+      confirmBtn.removeEventListener('click', onConfirm);
+      document.getElementById('oc-cancel').removeEventListener('click', onCancel);
+    }
+    confirmBtn.addEventListener('click', onConfirm);
+    document.getElementById('oc-cancel').addEventListener('click', onCancel);
+  });
+}
+
+// ── DCA queue rendering ──
+let dcaQueueOrders = []; // { type, qty, targetPrice, triggered, id }
+let dcaQueueIdCounter = 0;
+
+function renderDcaQueue() {
+  const wrap = document.getElementById('dca-queue');
+  const list = document.getElementById('dca-queue-list');
+  if (!dcaQueueOrders.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  list.innerHTML = '';
+  dcaQueueOrders.forEach((order, i) => {
+    const row = document.createElement('div');
+    row.className = 'dca-order-row' + (order.triggered ? ' triggered' : '');
+    row.dataset.id = order.id;
+    const typeClass = order.type === 'buy' ? 'dca-order-type-buy' : 'dca-order-type-sell';
+    row.innerHTML =
+      '<span class="dca-order-idx">' + (i+1) + '</span>' +
+      '<span class="' + typeClass + '">' + order.type.toUpperCase() + '</span>' +
+      '<span class="dca-order-price">' + fmt(Math.round(order.targetPrice)) + '</span>' +
+      (order.triggered
+        ? '<span class="dca-order-check">✓</span>'
+        : '<button class="dca-order-cancel" data-id="' + order.id + '">×</button>');
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.dca-order-cancel').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      dcaQueueOrders = dcaQueueOrders.filter(o => o.id !== id);
+      // also remove from pendingDcaOrders by index match
+      const remaining = dcaQueueOrders.filter(o => !o.triggered);
+      pendingDcaOrders = remaining.map(o => ({ type: o.type, qty: o.qty, targetPrice: o.targetPrice }));
+      renderDcaQueue();
+      addLog('Order #' + (id) + ' cancelled');
+    });
+  });
+}
+
+function markQueueOrderTriggered(targetPrice) {
+  const order = dcaQueueOrders.find(o => !o.triggered && Math.abs(o.targetPrice - targetPrice) < 1);
+  if (order) { order.triggered = true; renderDcaQueue(); }
+}
+
 // ── Trade log ──
 function addLog(msg) {
   const log = document.getElementById('tlog');
@@ -203,32 +290,29 @@ function addLog(msg) {
   log.insertBefore(item, log.firstChild);
 }
 
-// ── Buy/Sell button listeners ──
-document.getElementById('bbuy').addEventListener('click', () => {
-  const o = getOrderQty('buy');
+// ── Buy/Sell button listeners (with confirm modal) ──
+async function handleTrade(type) {
+  const o = getOrderQty(type);
   if (!o || o.qty <= 0) { addLog(t('invalidAmt')); return; }
+  const confirmed = await showOrderConfirm(type, o.qty, o.usdValue, dcaSteps);
+  if (!confirmed) return;
   if (dcaSteps === 1) {
-    executeSingleOrder('buy', o.qty);
+    executeSingleOrder(type, o.qty);
   } else {
-    pendingDcaOrders = buildDcaOrders('buy', o.qty);
-    addLog(`🔀 ${t('dcaBuy')} — ${dcaSteps} ${t('staggeredOrders')}`);
+    const orders = buildDcaOrders(type, o.qty);
+    // Populate visual queue
+    dcaQueueOrders = orders.map(ord => ({ ...ord, triggered: false, id: ++dcaQueueIdCounter }));
+    renderDcaQueue();
+    pendingDcaOrders = [...orders];
+    addLog('DCA ' + type.toUpperCase() + ' — ' + dcaSteps + ' orders queued');
     const f = pendingDcaOrders.shift();
+    markQueueOrderTriggered(f.targetPrice);
     executeSingleOrder(f.type, f.qty);
   }
-});
+}
 
-document.getElementById('bsell').addEventListener('click', () => {
-  const o = getOrderQty('sell');
-  if (!o || o.qty <= 0) { addLog(t('invalidAmt')); return; }
-  if (dcaSteps === 1) {
-    executeSingleOrder('sell', o.qty);
-  } else {
-    pendingDcaOrders = buildDcaOrders('sell', o.qty);
-    addLog(`🔀 ${t('dcaSell')} — ${dcaSteps} ${t('staggeredOrdersSell')}`);
-    const f = pendingDcaOrders.shift();
-    executeSingleOrder(f.type, f.qty);
-  }
-});
+document.getElementById('bbuy').addEventListener('click', () => handleTrade('buy'));
+document.getElementById('bsell').addEventListener('click', () => handleTrade('sell'));
 
 // ── Amount mode controls ──
 document.querySelectorAll('.mode-tab').forEach(tb => tb.addEventListener('click', function () {

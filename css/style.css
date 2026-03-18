@@ -211,7 +211,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .trade-val-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .trade-est{font-size:11px;color:var(--text3);}
 .trade-est strong{color:var(--text);font-size:14px;}
-.tw-right{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;}
+.tw-right{
+  display:flex;flex-direction:column;justify-content:flex-start;gap:10px;
+  position:sticky;top:16px;align-self:start;
+}
 /* BUY / SELL — inchangés */
 .btn-buy{padding:13px 0;width:100%;border:none;border-radius:8px;background:#16a34a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s,transform .1s;}
 .btn-buy:active{transform:scale(.97);}
@@ -393,21 +396,90 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .modal-cancel{font-size:10px;color:var(--text3);background:transparent;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;display:block;text-align:center;}
 
 /* ════════════════════════════════════════
-   FEAR & GREED WIDGET (tw-right)
+   FEAR & GREED WIDGET (tw-right) — gauge
 ════════════════════════════════════════ */
 .fg-widget{
   background:var(--ind-bg);border:0.5px solid var(--ind-border);
   border-radius:var(--radius-sm);padding:10px 12px;
-  display:flex;flex-direction:column;align-items:center;gap:4px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.fg-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--ind-2);}
-.fg-score{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ind-1);line-height:1;}
-.fg-name{font-size:10px;font-weight:600;}
-.fg-bar-wrap{width:100%;height:4px;background:var(--ind-track);border-radius:2px;overflow:hidden;}
-.fg-bar{height:100%;border-radius:2px;transition:width .6s ease;}
-.fg-meta{display:flex;justify-content:space-between;width:100%;}
+.fg-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--ind-2);margin-bottom:2px;}
+.fg-gauge-wrap{width:100%;display:flex;justify-content:center;}
+.fg-gauge{overflow:visible;}
+.fg-score{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ind-1);line-height:1;}
+.fg-name{font-size:10px;font-weight:600;margin-top:-1px;}
+.fg-meta{display:flex;justify-content:space-between;width:100%;margin-top:3px;}
 .fg-meta-item{font-size:9px;color:var(--text3);}
 .fg-meta-val{color:var(--ind-2);}
+
+/* ════════════════════════════════════════
+   DCA ORDER QUEUE
+════════════════════════════════════════ */
+.dca-queue{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
+.dca-queue-title{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:2px;}
+.dca-order-row{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 7px;
+  background:var(--bg);border:0.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:10px;
+  font-variant-numeric:tabular-nums;
+  transition:opacity .2s;
+}
+.dca-order-row.triggered{opacity:.45;}
+.dca-order-idx{color:var(--text3);min-width:14px;}
+.dca-order-type-buy{color:#4ade80;font-weight:600;}
+.dca-order-type-sell{color:#a78bfa;font-weight:600;}
+.dca-order-price{flex:1;color:var(--text2);}
+.dca-order-check{color:#4ade80;font-size:11px;}
+.dca-order-cancel{
+  background:transparent;border:none;cursor:pointer;
+  color:var(--text3);font-size:11px;padding:0 2px;
+  font-family:inherit;line-height:1;
+  transition:color .1s;
+}
+.dca-order-cancel:hover{color:var(--red-text);}
+
+/* ════════════════════════════════════════
+   ORDER CONFIRM MODAL
+════════════════════════════════════════ */
+.order-confirm-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;z-index:200;
+  backdrop-filter:blur(3px);
+}
+.order-confirm-overlay.hidden{display:none;}
+.order-confirm{
+  background:var(--surface);border:0.5px solid var(--border2);
+  border-radius:var(--radius);padding:18px 20px;
+  max-width:320px;width:90%;
+}
+.oc-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.oc-rows{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.oc-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+.oc-lbl{color:var(--text3);}
+.oc-val{color:var(--text);font-variant-numeric:tabular-nums;font-weight:500;}
+.oc-val-buy{color:#4ade80;}
+.oc-val-sell{color:#a78bfa;}
+.oc-fg-row{margin-top:6px;padding-top:8px;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.oc-fg-label{font-size:9px;color:var(--text3);}
+.oc-fg-score{font-size:11px;font-weight:700;}
+.oc-btns{display:flex;gap:8px;}
+.oc-confirm{
+  flex:1;padding:9px 0;border:none;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .12s;
+}
+.oc-confirm-buy{background:#16a34a;color:#fff;}
+.oc-confirm-buy:hover{background:#15803d;}
+.oc-confirm-sell{background:#7c3aed;color:#fff;}
+.oc-confirm-sell:hover{background:#5b21b6;}
+.oc-cancel-btn{
+  padding:9px 14px;background:transparent;
+  border:0.5px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text2);font-size:11px;cursor:pointer;font-family:inherit;
+  transition:background .12s;
+}
+.oc-cancel-btn:hover{background:var(--surface2);}
 
 /* ════════════════════════════════════════
    PORTFOLIO

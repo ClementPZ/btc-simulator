@@ -157,6 +157,10 @@
           </div>
         </div>
         <div id="dca-preview"></div>
+        <div class="dca-queue" id="dca-queue" style="display:none;">
+          <div class="dca-queue-title">Pending orders</div>
+          <div id="dca-queue-list"></div>
+        </div>
       </div>
       <div class="trade-val-row">
         <span class="trade-est" data-i18n="totalOrder">Total order ≈ <strong id="tval">$0</strong></span>
@@ -164,12 +168,33 @@
       </div>
     </div>
     <div class="tw-right">
-      <!-- Fear & Greed widget -->
+      <!-- Fear & Greed gauge widget -->
       <div class="fg-widget" id="fg-widget">
         <div class="fg-label">Fear &amp; Greed</div>
+        <div class="fg-gauge-wrap">
+          <svg class="fg-gauge" id="fg-gauge" width="160" height="88" viewBox="0 0 160 88">
+            <defs>
+              <linearGradient id="fg-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f87171"/>
+                <stop offset="30%" stop-color="#facc15"/>
+                <stop offset="60%" stop-color="#c8920a"/>
+                <stop offset="100%" stop-color="#4ade80"/>
+              </linearGradient>
+            </defs>
+            <!-- Track arc -->
+            <path d="M16 80 A64 64 0 0 1 144 80" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" stroke-linecap="round"/>
+            <!-- Color arc -->
+            <path d="M16 80 A64 64 0 0 1 144 80" fill="none" stroke="url(#fg-grad)" stroke-width="10" stroke-linecap="round"/>
+            <!-- Needle -->
+            <line id="fg-needle" x1="80" y1="80" x2="80" y2="24" stroke="#f4f4f5" stroke-width="1.5" stroke-linecap="round" transform="rotate(0 80 80)" style="transition:transform .8s ease;"/>
+            <circle cx="80" cy="80" r="4" fill="#f4f4f5" opacity="0.7"/>
+            <!-- Zone labels -->
+            <text x="10" y="84" font-size="7" fill="#f87171" font-family="'Courier New',monospace" opacity="0.7">Fear</text>
+            <text x="122" y="84" font-size="7" fill="#4ade80" font-family="'Courier New',monospace" opacity="0.7">Greed</text>
+          </svg>
+        </div>
         <div class="fg-score" id="fg-score">—</div>
         <div class="fg-name" id="fg-name" style="color:var(--ind-2);">Loading…</div>
-        <div class="fg-bar-wrap"><div class="fg-bar" id="fg-bar" style="width:0%;"></div></div>
         <div class="fg-meta">
           <span class="fg-meta-item">D-1 <span class="fg-meta-val" id="fg-prev">—</span></span>
           <span class="fg-meta-item">W <span class="fg-meta-val" id="fg-week">—</span></span>
@@ -276,6 +301,28 @@
 <div class="footer">
   Bitcoin Simulator · <span data-i18n="footerSim">Educational simulation only · Not financial advice</span><br>
   <span data-i18n="footerSrc">Live price:</span> <a href="https://binance.com" target="_blank">Binance WebSocket</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
+</div>
+
+<!-- ORDER CONFIRM MODAL -->
+<div class="order-confirm-overlay hidden" id="order-confirm-overlay">
+  <div class="order-confirm">
+    <div class="oc-title" id="oc-title">Confirm order</div>
+    <div class="oc-rows">
+      <div class="oc-row"><span class="oc-lbl">Type</span><span class="oc-val" id="oc-type">—</span></div>
+      <div class="oc-row"><span class="oc-lbl">Quantity</span><span class="oc-val" id="oc-qty">—</span></div>
+      <div class="oc-row"><span class="oc-lbl">Est. price</span><span class="oc-val" id="oc-price">—</span></div>
+      <div class="oc-row"><span class="oc-lbl">Total</span><span class="oc-val" id="oc-total">—</span></div>
+      <div class="oc-row" id="oc-dca-row" style="display:none;"><span class="oc-lbl">DCA orders</span><span class="oc-val" id="oc-dca">—</span></div>
+    </div>
+    <div class="oc-fg-row">
+      <span class="oc-fg-label">Fear &amp; Greed now</span>
+      <span class="oc-fg-score" id="oc-fg-score" style="color:var(--ind-1);">—</span>
+    </div>
+    <div class="oc-btns" style="margin-top:14px;">
+      <button class="oc-cancel-btn" id="oc-cancel">Cancel</button>
+      <button class="oc-confirm" id="oc-confirm">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->
