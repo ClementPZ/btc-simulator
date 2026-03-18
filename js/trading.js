@@ -97,15 +97,19 @@ function executeSingleOrder(type, qty) {
     const cost = qty * price * 1.0008;
     if (cost > cash + 1) { addLog(t('insufficient')); return; }
     cash -= cost; totalCost += cost; btc += qty; avgBuy = totalCost / btc;
-    addLog('✅ BUY ' + fmtB(qty) + ' @ ' + fmt(price) + ' = ' + fmt(cost));
+    tradeHistory.push({ type: 'buy', pnl: 0, price });
+    addLog('BUY ' + fmtB(qty) + ' @ ' + fmt(price) + ' = ' + fmt(cost));
   } else {
     if (qty > btc + .0001) { addLog(t('btcInsuff')); return; }
     const proc = qty * price * .9992;
+    const tradePnl = avgBuy > 0 ? (price - avgBuy) * qty : 0;
     btc = Math.max(0, btc - qty); cash += proc;
     if (btc < .0001) { btc = 0; totalCost = 0; avgBuy = 0; } else totalCost = avgBuy * btc;
-    addLog('🔴 SELL ' + fmtB(qty) + ' @ ' + fmt(price) + ' = ' + fmt(proc));
+    tradeHistory.push({ type: 'sell', pnl: tradePnl, price });
+    addLog('SELL ' + fmtB(qty) + ' @ ' + fmt(price) + ' = ' + fmt(proc));
   }
   updatePort();
+  updateTraderProfile();
 }
 
 // ── Portfolio ──
@@ -122,6 +126,68 @@ function updatePort() {
   pe.textContent = sg + fmt(pnl) + ' (' + sg + pp.toFixed(2) + '%)';
   pe.style.color = pnl >= 0 ? '#4ade80' : '#f87171';
   document.getElementById('p-avg').textContent = avgBuy > 0 ? fmt(avgBuy) : '—';
+}
+
+// ── Fear & Greed ──
+async function fetchFearGreed() {
+  try {
+    const r = await fetch('https://api.alternative.me/fng/?limit=8');
+    if (!r.ok) return;
+    const d = await r.json();
+    const entries = d.data;
+    if (!entries || entries.length === 0) return;
+    const now  = entries[0];
+    const prev = entries[1] || now;
+    const weekAvg = Math.round(entries.slice(0,7).reduce((s,e) => s + parseInt(e.value), 0) / Math.min(entries.length, 7));
+    const score = parseInt(now.value);
+    const name  = now.value_classification;
+    const barColor  = score < 25 ? '#f87171' : score < 46 ? '#facc15' : score < 75 ? '#c8920a' : '#4ade80';
+    const nameColor = score < 25 ? '#f87171' : score < 46 ? '#facc15' : score < 75 ? '#c8920a' : '#4ade80';
+    document.getElementById('fg-score').textContent = score;
+    const nameEl = document.getElementById('fg-name');
+    nameEl.textContent = name;
+    nameEl.style.color = nameColor;
+    const bar = document.getElementById('fg-bar');
+    bar.style.width = score + '%';
+    bar.style.background = barColor;
+    document.getElementById('fg-prev').textContent = prev.value;
+    document.getElementById('fg-week').textContent = weekAvg;
+  } catch(e) {}
+}
+fetchFearGreed();
+setInterval(fetchFearGreed, 300000);
+
+// ── Trader profile ──
+let tradeHistory = [];
+function updateTraderProfile() {
+  const els = {
+    style:   document.getElementById('tp-style'),
+    trades:  document.getElementById('tp-trades'),
+    winrate: document.getElementById('tp-winrate'),
+    best:    document.getElementById('tp-best'),
+    worst:   document.getElementById('tp-worst'),
+    risk:    document.getElementById('tp-risk'),
+  };
+  if (!els.style) return;
+  const n = tradeHistory.length;
+  els.trades.textContent = n;
+  if (n === 0) { els.style.textContent = 'New'; return; }
+  const wins = tradeHistory.filter(t => t.pnl > 0).length;
+  const wr = Math.round((wins / n) * 100);
+  els.winrate.textContent = wr + '%';
+  const pnls = tradeHistory.map(t => t.pnl);
+  const best  = Math.max(...pnls);
+  const worst = Math.min(...pnls);
+  els.best.textContent  = best  > 0 ? '+' + fmt(Math.round(best))  : '—';
+  els.worst.textContent = worst < 0 ? '−' + fmt(Math.round(Math.abs(worst))) : '—';
+  const buys = tradeHistory.filter(t => t.type === 'buy').length;
+  const style = n < 3 ? 'Learning' : buys / n > 0.7 ? 'Accumulator' : buys / n < 0.3 ? 'Seller' : wr > 60 ? 'Strategist' : 'Active';
+  els.style.textContent = style;
+  if (price > 0) {
+    const bv = btc * price, tot = cash + bv;
+    const riskPct = tot > 0 ? Math.round((bv / tot) * 100) : 0;
+    els.risk.style.width = riskPct + '%';
+  }
 }
 
 // ── Trade log ──

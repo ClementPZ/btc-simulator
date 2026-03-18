@@ -15,6 +15,13 @@
   --pill-text:var(--text2);
   --pill-act-border:rgba(255,255,255,0.55);
   --pill-act-text:var(--text);
+  /* ── Indicator palette — dark yellow / amber / brown ── */
+  --ind-1:#c8920a; /* dark amber — text strong */
+  --ind-2:#a06c06; /* burnt amber — text muted */
+  --ind-3:#7a4f03; /* brown — borders */
+  --ind-bg:rgba(160,108,6,0.10); /* amber fill */
+  --ind-border:rgba(200,146,10,0.28); /* amber border */
+  --ind-track:rgba(160,108,6,0.18); /* progress track */
 }
 body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;padding:0;}
 .page{max-width:1100px;margin:0 auto;padding:24px 20px;}
@@ -386,10 +393,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .modal-cancel{font-size:10px;color:var(--text3);background:transparent;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;display:block;text-align:center;}
 
 /* ════════════════════════════════════════
+   FEAR & GREED WIDGET (tw-right)
+════════════════════════════════════════ */
+.fg-widget{
+  background:var(--ind-bg);border:0.5px solid var(--ind-border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.fg-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--ind-2);}
+.fg-score{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ind-1);line-height:1;}
+.fg-name{font-size:10px;font-weight:600;}
+.fg-bar-wrap{width:100%;height:4px;background:var(--ind-track);border-radius:2px;overflow:hidden;}
+.fg-bar{height:100%;border-radius:2px;transition:width .6s ease;}
+.fg-meta{display:flex;justify-content:space-between;width:100%;}
+.fg-meta-item{font-size:9px;color:var(--text3);}
+.fg-meta-val{color:var(--ind-2);}
+
+/* ════════════════════════════════════════
    PORTFOLIO
 ════════════════════════════════════════ */
 .port{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
-.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px;}
+.port-inner{display:grid;grid-template-columns:160px 1fr;gap:12px;margin-top:10px;}
+@media(max-width:640px){.port-inner{grid-template-columns:1fr;}}
+/* Trader profile — left column */
+.trader-profile{
+  background:var(--ind-bg);border:0.5px solid var(--ind-border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.tp-title{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--ind-2);margin-bottom:2px;}
+.tp-row{display:flex;justify-content:space-between;align-items:center;}
+.tp-label{font-size:9px;color:var(--text3);}
+.tp-val{font-size:10px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);}
+.tp-val-pos{color:var(--green-text);}
+.tp-val-neg{color:var(--red-text);}
+.tp-style{font-size:10px;font-weight:600;color:var(--ind-1);}
+.tp-risk-label{font-size:8px;color:var(--text3);margin-top:3px;margin-bottom:2px;}
+.tp-risk-track{height:4px;background:var(--ind-track);border-radius:2px;overflow:hidden;}
+.tp-risk-bar{height:100%;background:var(--ind-1);border-radius:2px;transition:width .4s ease;}
+/* Portfolio grid — right column */
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
 @media(max-width:500px){.pgrid{grid-template-columns:1fr 1fr;}}
 .pi{background:var(--surface2);border-radius:var(--radius-sm);padding:9px 11px;border:0.5px solid var(--border);}
 .pil{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
