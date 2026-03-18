@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin Simulator — 18 mars 2026</title>
+<title>Bitcoin Simulator — March 18, 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -19,6 +19,11 @@
 }
 body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;padding:0;}
 .page{max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+/* ── LANG SWITCH ── */
+.lang-bar{display:flex;justify-content:flex-end;margin-bottom:12px;gap:4px;}
+.lang-btn{padding:3px 10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
+.lang-btn.act{background:var(--surface2);color:var(--text);border-color:var(--orange);}
 
 /* ── HEADER ── */
 .site-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:0.5px solid var(--border);}
@@ -41,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,mo
 .price-strip{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
 .big-price{font-size:38px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);letter-spacing:-1.5px;}
 .price-chg{font-size:15px;font-weight:500;}
-.up{color:var(--green-text);} .dn{color:var(--red-text);}
+.up{color:var(--green-text);}.dn{color:var(--red-text);}
 .ticker-metas{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap;}
 .tmeta{font-size:11px;color:var(--text3);display:flex;flex-direction:column;gap:1px;text-align:right;}
 .tmeta strong{font-size:12px;color:var(--text);font-weight:500;}
@@ -56,8 +61,6 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,mo
 .liq-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
 .liq-val{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);}
 .liq-sub{font-size:10px;color:var(--text3);margin-top:1px;}
-
-/* amount input */
 .amount-section{margin-bottom:12px;}
 .amount-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .amount-input{flex:1;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;font-size:14px;font-family:inherit;color:var(--text);font-variant-numeric:tabular-nums;outline:none;min-width:0;}
@@ -77,8 +80,6 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,mo
 input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--orange);cursor:pointer;}
 .pct-val{font-size:12px;font-variant-numeric:tabular-nums;color:var(--text);min-width:38px;text-align:right;}
-
-/* DCA section */
 .dca-section{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px;}
 .dca-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
 .dca-title{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);}
@@ -86,21 +87,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .dca-step-btn{padding:2px 8px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
 .dca-step-btn.act{background:rgba(247,147,26,.12);color:var(--orange);border-color:rgba(247,147,26,.35);}
 .dca-preview{display:flex;flex-direction:column;gap:4px;}
-.dca-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;}
+.dca-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;gap:6px;}
 .dca-row-label{color:var(--text3);}
 .dca-row-val{color:var(--text);font-variant-numeric:tabular-nums;}
 .dca-row-buy{color:#4ade80;}
 .dca-row-sell{color:#a78bfa;}
-.dca-execute-btn{margin-top:8px;width:100%;padding:7px 0;border:none;border-radius:var(--radius-sm);font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:background .15s;}
-.dca-execute-buy{background:rgba(22,163,74,.15);color:#4ade80;border:0.5px solid rgba(22,163,74,.3);}
-.dca-execute-buy:hover{background:rgba(22,163,74,.25);}
-.dca-execute-sell{background:rgba(124,58,237,.15);color:#a78bfa;border:0.5px solid rgba(124,58,237,.3);}
-.dca-execute-sell:hover{background:rgba(124,58,237,.25);}
-
 .trade-val-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .trade-est{font-size:11px;color:var(--text3);}
 .trade-est strong{color:var(--text);font-size:14px;}
 .tw-right{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;}
+/* PRIMARY buttons */
 .btn-buy{padding:13px 0;width:100%;border:none;border-radius:8px;background:#16a34a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s,transform .1s;}
 .btn-buy:active{transform:scale(.97);}
 .btn-buy:hover{background:#15803d;}
@@ -123,11 +119,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .tft.act{background:var(--surface2);color:var(--text);border-color:var(--border2);}
 .chart-wrap{position:relative;width:100%;height:200px;}
 
-/* ── SIM MODE BANNER ── */
-.sim-banner{display:none;background:rgba(247,147,26,.08);border:0.5px solid rgba(247,147,26,.3);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--orange);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
-.sim-banner.hidden{display:none!important;}
-.sim-back-btn{padding:3px 10px;border:0.5px solid rgba(247,147,26,.5);border-radius:99px;background:transparent;color:var(--orange);font-size:10px;cursor:pointer;font-family:inherit;}
-.sim-back-btn:hover{background:rgba(247,147,26,.12);}
+/* ── SIM BANNER ── */
+.sim-banner{background:rgba(247,147,26,.08);border:0.5px solid rgba(247,147,26,.3);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--orange);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.sim-banner.hidden{display:none;}
+/* SECONDARY button — Back to live */
+.sim-back-btn{padding:6px 14px;border:0.5px solid rgba(247,147,26,.6);border-radius:8px;background:rgba(247,147,26,.1);color:var(--orange);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s;}
+.sim-back-btn:hover{background:rgba(247,147,26,.22);}
 
 /* ── UPDATE BAR ── */
 .update-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:7px 12px;background:var(--surface);border-radius:var(--radius-sm);border:0.5px solid var(--border);flex-wrap:wrap;gap:8px;}
@@ -147,15 +144,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .ctab.act-past{background:rgba(22,163,74,.1);color:#4ade80;border-color:rgba(22,163,74,.3);}
 .ctab.act-now{background:rgba(247,147,26,.1);color:var(--orange);border-color:rgba(247,147,26,.3);}
 .ctab.act-fut{background:rgba(124,58,237,.1);color:#a78bfa;border-color:rgba(124,58,237,.3);}
-
-/* suggested scenario */
 .suggested-banner{background:rgba(247,147,26,.06);border:0.5px solid rgba(247,147,26,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;}
 .suggested-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
-.suggested-body{}
 .suggested-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:3px;}
 .suggested-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;}
 .suggested-desc{font-size:10px;color:var(--text2);line-height:1.45;}
-
 .split-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:640px){.split-cols{grid-template-columns:1fr;}}
 .col-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
@@ -186,19 +179,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .evt-imp-dn{color:var(--red-text);}
 .evt-src{font-size:9px;color:var(--text3);font-style:italic;}
 
-/* ── SIM MODE CHOICE MODAL ── */
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px);}
 .modal-overlay.hidden{display:none;}
-.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:20px 24px;max-width:400px;width:90%;}
+.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:20px 24px;max-width:420px;width:90%;}
 .modal-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
 .modal-evt{font-size:11px;color:var(--orange);margin-bottom:12px;font-weight:600;}
 .modal-desc{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:16px;}
-.modal-btns{display:flex;flex-direction:column;gap:8px;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
 .modal-btn{padding:10px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);font-size:11px;font-family:inherit;cursor:pointer;text-align:left;transition:background .12s;}
 .modal-btn:hover{background:var(--border);}
 .modal-btn-label{font-weight:600;margin-bottom:2px;}
 .modal-btn-sub{font-size:10px;color:var(--text3);}
-.modal-cancel{margin-top:4px;font-size:10px;color:var(--text3);background:transparent;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;}
+/* Remember choice checkbox */
+.modal-remember{display:flex;align-items:center;gap:7px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:0.5px solid var(--border);margin-bottom:10px;cursor:pointer;}
+.modal-remember input[type=checkbox]{accent-color:var(--orange);width:13px;height:13px;cursor:pointer;}
+.modal-remember-label{font-size:10px;color:var(--text2);}
+.modal-cancel{font-size:10px;color:var(--text3);background:transparent;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;display:block;text-align:center;}
 
 /* ── PORTFOLIO ── */
 .port{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
@@ -208,9 +205,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .pil{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
 .piv{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);}
 
-/* ── LOG ── */
-.logbox{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;}
-.logscroll{max-height:120px;overflow-y:auto;margin-top:8px;}
+/* ── LOG — hugs content, no internal scroll ── */
+.logbox{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
+.loglist{margin-top:8px;}
 .li{font-size:10px;color:var(--text3);padding:3px 0;border-bottom:0.5px solid var(--border);line-height:1.4;}
 .li:last-child{border-bottom:none;}
 
@@ -222,17 +219,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 <body>
 <div class="page">
 
+<!-- LANG BAR -->
+<div class="lang-bar">
+  <button class="lang-btn act" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="fr">FR</button>
+  <button class="lang-btn" data-lang="es">ES</button>
+</div>
+
 <!-- HEADER -->
 <div class="site-header">
   <div class="btc-logo">₿</div>
   <div>
-    <div class="site-title">Bitcoin Simulator</div>
-    <div class="site-sub">Mercredi 18 mars 2026 · Simulation pédagogique</div>
+    <div class="site-title" data-i18n="title">Bitcoin Simulator</div>
+    <div class="site-sub" data-i18n="subtitle">Wednesday March 18, 2026 · Educational simulation</div>
   </div>
   <div class="header-right">
-    <div class="ws-status" id="ws-status"><div class="ws-dot"></div><span id="ws-label">Connexion…</span></div>
-    <div class="live-pill"><div class="live-dot"></div><span id="price-source">Prix live</span></div>
-    <div class="fomc-pill">FOMC · 14h ET aujourd'hui</div>
+    <div class="ws-status" id="ws-status"><div class="ws-dot"></div><span id="ws-label" data-i18n="connecting">Connecting…</span></div>
+    <div class="live-pill"><div class="live-dot"></div><span id="price-source" data-i18n="livePrice">Live price</span></div>
+    <div class="fomc-pill" data-i18n="fomcPill">FOMC · 2pm ET today</div>
   </div>
 </div>
 
@@ -241,49 +245,45 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <span class="big-price" id="pdisplay">$—</span>
   <span class="price-chg up" id="cdisplay">…</span>
   <div class="ticker-metas">
-    <div class="tmeta"><span>Market Cap</span><strong id="m-cap">—</strong></div>
-    <div class="tmeta"><span>Nasdaq (clôt. 17/3)</span><strong class="up">22,479 +0.47%</strong></div>
-    <div class="tmeta"><span>WTI Pétrole</span><strong class="dn">$97.00 +3.7%</strong></div>
-    <div class="tmeta"><span>Taux Fed</span><strong style="color:var(--orange);">3.50–3.75%</strong></div>
+    <div class="tmeta"><span data-i18n="mktCap">Market Cap</span><strong id="m-cap">—</strong></div>
+    <div class="tmeta"><span data-i18n="nasdaq">Nasdaq (close 17/3)</span><strong class="up">22,479 +0.47%</strong></div>
+    <div class="tmeta"><span data-i18n="wti">WTI Oil</span><strong class="dn">$97.00 +3.7%</strong></div>
+    <div class="tmeta"><span data-i18n="fedRate">Fed Rate</span><strong style="color:var(--orange);">3.50–3.75%</strong></div>
   </div>
 </div>
 
 <!-- SIM BANNER -->
 <div class="sim-banner hidden" id="sim-banner">
-  <span id="sim-banner-text">Mode simulation — événement actif</span>
-  <button class="sim-back-btn" id="sim-back-btn">↩ Retour au prix live</button>
+  <span id="sim-banner-text"></span>
+  <button class="sim-back-btn" id="sim-back-btn" data-i18n="backToLive">↩ Back to live price</button>
 </div>
 
 <!-- TRADE WIDGET -->
 <div class="trade-widget">
   <div class="tw-inner">
     <div>
-      <div class="tw-label">Liquidités & Ordre</div>
+      <div class="tw-label" data-i18n="twLabel">Liquidity & Order</div>
       <div class="liquidity-row">
         <div class="liq-box">
-          <div class="liq-label">Cash disponible</div>
+          <div class="liq-label" data-i18n="cashAvail">Available Cash</div>
           <div class="liq-val" id="liq-cash">$100,000</div>
-          <div class="liq-sub">USD · prêt à investir</div>
+          <div class="liq-sub" data-i18n="readyInvest">USD · ready to invest</div>
         </div>
         <div class="liq-box">
-          <div class="liq-label">BTC détenu</div>
+          <div class="liq-label" data-i18n="btcHeld">BTC held</div>
           <div class="liq-val" id="liq-btc">0.0000</div>
           <div class="liq-sub" id="liq-btcval">≈ $0</div>
         </div>
       </div>
-
-      <!-- Amount mode tabs -->
       <div class="amount-mode-row">
-        <span style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-right:4px;">Mode</span>
-        <button class="mode-tab act" data-mode="pct">% Portefeuille</button>
-        <button class="mode-tab" data-mode="btc">Montant BTC</button>
-        <button class="mode-tab" data-mode="usd">Montant USD</button>
+        <span style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-right:4px;" data-i18n="mode">Mode</span>
+        <button class="mode-tab act" data-mode="pct" data-i18n="modePct">% Portfolio</button>
+        <button class="mode-tab" data-mode="btc">BTC</button>
+        <button class="mode-tab" data-mode="usd">USD</button>
       </div>
-
-      <!-- PCT mode -->
       <div id="mode-pct" class="amount-section">
         <div class="slider-wrap">
-          <span class="pct-label">Part</span>
+          <span class="pct-label" data-i18n="share">Share</span>
           <input type="range" id="pct-slider" min="1" max="100" step="1" value="10">
           <span class="pct-val" id="pct-val-disp">10%</span>
         </div>
@@ -291,33 +291,27 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <button class="qbtn" data-pct="25">25%</button>
           <button class="qbtn" data-pct="50">50%</button>
           <button class="qbtn" data-pct="75">75%</button>
-          <button class="qbtn allin" data-pct="100">ALL IN ▲</button>
-          <button class="qbtn allout" data-pct="-100">ALL OUT ▼</button>
+          <button class="qbtn allin" data-pct="100" data-i18n="allIn">ALL IN ▲</button>
+          <button class="qbtn allout" data-pct="-100" data-i18n="allOut">ALL OUT ▼</button>
         </div>
       </div>
-
-      <!-- BTC mode -->
       <div id="mode-btc" class="amount-section" style="display:none;">
         <div class="amount-row">
-          <input type="number" class="amount-input" id="btc-input" placeholder="ex: 0.250" min="0.0001" step="0.0001">
+          <input type="number" class="amount-input" id="btc-input" placeholder="e.g. 0.250" min="0.0001" step="0.0001">
           <span class="amount-unit">BTC</span>
         </div>
       </div>
-
-      <!-- USD mode -->
       <div id="mode-usd" class="amount-section" style="display:none;">
         <div class="amount-row">
-          <input type="number" class="amount-input" id="usd-input" placeholder="ex: 5000" min="1" step="1">
+          <input type="number" class="amount-input" id="usd-input" placeholder="e.g. 5000" min="1" step="1">
           <span class="amount-unit">USD</span>
         </div>
       </div>
-
-      <!-- DCA section -->
       <div class="dca-section">
         <div class="dca-header">
-          <span class="dca-title">DCA échelonné</span>
+          <span class="dca-title" data-i18n="dcaTitle">Staggered DCA</span>
           <div class="dca-steps-row">
-            <span style="font-size:9px;color:var(--text3);">Ordres:</span>
+            <span style="font-size:9px;color:var(--text3);" data-i18n="orders">Orders:</span>
             <button class="dca-step-btn act" data-steps="1">1×</button>
             <button class="dca-step-btn" data-steps="3">3×</button>
             <button class="dca-step-btn" data-steps="4">4×</button>
@@ -328,29 +322,27 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
         </div>
         <div class="dca-preview" id="dca-preview"></div>
       </div>
-
       <div class="trade-val-row">
-        <span class="trade-est">Total ordre ≈ <strong id="tval">$0</strong></span>
+        <span class="trade-est" data-i18n="totalOrder">Total order ≈ <strong id="tval">$0</strong></span>
         <span class="trade-est">slippage ~0.08%</span>
       </div>
     </div>
-
     <div class="tw-right">
-      <div class="tw-label" style="text-align:center;">Exécuter</div>
-      <button class="btn-buy" id="bbuy">▲ &nbsp;ACHETER BTC</button>
-      <button class="btn-sell" id="bsell">▼ &nbsp;VENDRE BTC</button>
-      <div class="btn-hint">Prix marché · simulation pédagogique</div>
+      <div class="tw-label" style="text-align:center;" data-i18n="execute">Execute</div>
+      <button class="btn-buy" id="bbuy" data-i18n="buyBtc">▲ &nbsp;BUY BTC</button>
+      <button class="btn-sell" id="bsell" data-i18n="sellBtc">▼ &nbsp;SELL BTC</button>
+      <div class="btn-hint" data-i18n="marketPrice">Market price · educational simulation</div>
     </div>
   </div>
 </div>
 
 <!-- METRICS -->
 <div class="metrics">
-  <div class="met"><div class="ml">Ouverture</div><div class="mv" id="m-open">—</div></div>
-  <div class="met"><div class="ml">Haut 24h</div><div class="mv" id="m-high">—</div></div>
-  <div class="met"><div class="ml">Bas 24h</div><div class="mv" id="m-low">—</div></div>
+  <div class="met"><div class="ml" data-i18n="open">Open</div><div class="mv" id="m-open">—</div></div>
+  <div class="met"><div class="ml" data-i18n="high">High 24h</div><div class="mv" id="m-high">—</div></div>
+  <div class="met"><div class="ml" data-i18n="low">Low 24h</div><div class="mv" id="m-low">—</div></div>
   <div class="met"><div class="ml">FedWatch Hold</div><div class="mv" style="color:var(--orange);">98.9%</div></div>
-  <div class="met"><div class="ml">Dominance BTC</div><div class="mv">59.1%</div></div>
+  <div class="met"><div class="ml" data-i18n="dominance">BTC Dominance</div><div class="mv">59.1%</div></div>
 </div>
 
 <!-- CHART -->
@@ -370,37 +362,36 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 <!-- UPDATE BAR -->
 <div class="update-bar">
-  <span class="update-left">Prix live via <strong>CoinCap WebSocket</strong> · Simulation pédagogique</span>
+  <span class="update-left" data-i18n="updateBar">Live price via <strong>CoinCap WebSocket</strong> · Educational simulation</span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <span style="font-size:10px;color:var(--text3);">Volatilité sim.</span>
+    <span style="font-size:10px;color:var(--text3);" data-i18n="volatility">Sim. volatility</span>
     <div class="vol-row">
-      <button class="vb" data-v="low">Calme</button>
-      <button class="vb act" data-v="med">Normale</button>
-      <button class="vb" data-v="high">Turbo</button>
+      <button class="vb" data-v="low" data-i18n="volLow">Calm</button>
+      <button class="vb act" data-v="med" data-i18n="volMed">Normal</button>
+      <button class="vb" data-v="high" data-i18n="volHigh">Turbo</button>
     </div>
-    <button class="pbtn" id="pbtn">⏸ Pause</button>
+    <button class="pbtn" id="pbtn" data-i18n="pause">⏸ Pause</button>
   </div>
 </div>
 
 <!-- EVENTS -->
 <div class="evt-section">
   <div class="evt-section-header">
-    <div class="sec-title">Scénarios & Événements — Impact Bitcoin</div>
+    <div class="sec-title" data-i18n="evtTitle">Scenarios & Events — Bitcoin Impact</div>
     <div class="cat-tabs">
-      <button class="ctab" data-cat="past">Passé</button>
-      <button class="ctab act-now" data-cat="now">Aujourd'hui 18/03</button>
-      <button class="ctab" data-cat="future">Futur</button>
+      <button class="ctab" data-cat="past" data-i18n="tabPast">Past</button>
+      <button class="ctab act-now" data-cat="now" data-i18n="tabNow">Today 18/03</button>
+      <button class="ctab" data-cat="future" data-i18n="tabFut">Future</button>
     </div>
   </div>
-  <!-- Suggested scenario banner -->
   <div class="suggested-banner" id="suggested-banner" style="display:none;"></div>
   <div class="split-cols">
     <div>
-      <div class="col-header"><div class="col-icon col-icon-up"></div><span class="col-label col-label-up">Scénarios Haussiers</span></div>
+      <div class="col-header"><div class="col-icon col-icon-up"></div><span class="col-label col-label-up" data-i18n="bullish">Bullish Scenarios</span></div>
       <div class="col-evts" id="col-bull"></div>
     </div>
     <div>
-      <div class="col-header"><div class="col-icon col-icon-dn"></div><span class="col-label col-label-dn">Scénarios Baissiers</span></div>
+      <div class="col-header"><div class="col-icon col-icon-dn"></div><span class="col-label col-label-dn" data-i18n="bearish">Bearish Scenarios</span></div>
       <div class="col-evts" id="col-bear"></div>
     </div>
   </div>
@@ -408,46 +399,50 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 <!-- PORTFOLIO -->
 <div class="port">
-  <div class="sec-title">Portefeuille</div>
+  <div class="sec-title" data-i18n="portfolio">Portfolio</div>
   <div class="pgrid">
-    <div class="pi"><div class="pil">Cash USD</div><div class="piv" id="p-cash">$100,000</div></div>
-    <div class="pi"><div class="pil">BTC détenu</div><div class="piv" id="p-btc">0.0000 BTC</div></div>
-    <div class="pi"><div class="pil">Valeur BTC</div><div class="piv" id="p-bval">$0</div></div>
-    <div class="pi"><div class="pil">Total</div><div class="piv" id="p-tot">$100,000</div></div>
+    <div class="pi"><div class="pil" data-i18n="cashUsd">Cash USD</div><div class="piv" id="p-cash">$100,000</div></div>
+    <div class="pi"><div class="pil" data-i18n="btcHeld2">BTC held</div><div class="piv" id="p-btc">0.0000 BTC</div></div>
+    <div class="pi"><div class="pil" data-i18n="btcValue">BTC value</div><div class="piv" id="p-bval">$0</div></div>
+    <div class="pi"><div class="pil" data-i18n="total">Total</div><div class="piv" id="p-tot">$100,000</div></div>
     <div class="pi"><div class="pil">P&L</div><div class="piv" id="p-pnl">$0 (0.00%)</div></div>
-    <div class="pi"><div class="pil">Prix moy. achat</div><div class="piv" id="p-avg">—</div></div>
+    <div class="pi"><div class="pil" data-i18n="avgBuy">Avg. buy price</div><div class="piv" id="p-avg">—</div></div>
   </div>
 </div>
 
-<!-- LOG -->
+<!-- LOG — no internal scroll, hugs content -->
 <div class="logbox">
-  <div class="sec-title">Journal des trades</div>
-  <div class="logscroll" id="tlog"><div class="li" style="font-style:italic;color:var(--text3);">Aucun trade pour l'instant.</div></div>
+  <div class="sec-title" data-i18n="tradeLog">Trade log</div>
+  <div class="loglist" id="tlog"><div class="li" style="font-style:italic;color:var(--text3);" data-i18n="noTrades">No trades yet.</div></div>
 </div>
 
 <!-- FOOTER -->
 <div class="footer">
-  Bitcoin Simulator · Simulation pédagogique uniquement · Pas un conseil financier<br>
-  Prix live: <a href="https://coincap.io" target="_blank">CoinCap WebSocket</a> · Sources: <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://kiplinger.com" target="_blank">Kiplinger</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
+  Bitcoin Simulator · <span data-i18n="footerSim">Educational simulation only · Not financial advice</span><br>
+  <span data-i18n="footerSrc">Live price:</span> <a href="https://coincap.io" target="_blank">CoinCap WebSocket</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
 </div>
 
-<!-- MODAL: sim mode choice -->
+<!-- MODAL -->
 <div class="modal-overlay hidden" id="modal-overlay">
   <div class="modal">
-    <div class="modal-title">Événement déclenché</div>
+    <div class="modal-title" data-i18n="modalTitle">Event triggered</div>
     <div class="modal-evt" id="modal-evt-name"></div>
     <div class="modal-desc" id="modal-evt-desc"></div>
     <div class="modal-btns">
       <button class="modal-btn" id="modal-diverge">
-        <div class="modal-btn-label">🚀 Simulation libre</div>
-        <div class="modal-btn-sub">Le prix dévie librement selon l'impact — ne revient pas au live</div>
+        <div class="modal-btn-label" data-i18n="modeFree">🚀 Free simulation</div>
+        <div class="modal-btn-sub" data-i18n="modeFreeSub">Price deviates freely — does not return to live</div>
       </button>
       <button class="modal-btn" id="modal-return">
-        <div class="modal-btn-label">🔄 Simulation puis retour live</div>
-        <div class="modal-btn-sub">Le prix dévie pendant ~60s puis converge progressivement vers le prix réel</div>
+        <div class="modal-btn-label" data-i18n="modeReturn">🔄 Simulate then return to live</div>
+        <div class="modal-btn-sub" data-i18n="modeReturnSub">Price deviates for ~60s then converges back to real market price</div>
       </button>
     </div>
-    <button class="modal-cancel" id="modal-cancel">Annuler</button>
+    <label class="modal-remember" id="modal-remember-wrap">
+      <input type="checkbox" id="modal-remember-chk">
+      <span class="modal-remember-label" data-i18n="rememberChoice">Apply this choice to all future events (until Back to live is pressed)</span>
+    </label>
+    <button class="modal-cancel" id="modal-cancel" data-i18n="cancel">Cancel</button>
   </div>
 </div>
 
@@ -455,28 +450,144 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 <script>
 // ═══════════════════════════════════════════════════════
-// CONSTANTS & STATE
+// I18N
+// ═══════════════════════════════════════════════════════
+const LANGS={
+  en:{
+    title:'Bitcoin Simulator',subtitle:'Wednesday March 18, 2026 · Educational simulation',
+    connecting:'Connecting…',livePrice:'Live price',fomcPill:'FOMC · 2pm ET today',
+    mktCap:'Market Cap',nasdaq:'Nasdaq (close 17/3)',wti:'WTI Oil',fedRate:'Fed Rate',
+    backToLive:'↩ Back to live price',twLabel:'Liquidity & Order',cashAvail:'Available Cash',
+    readyInvest:'USD · ready to invest',btcHeld:'BTC held',mode:'Mode',modePct:'% Portfolio',
+    share:'Share',allIn:'ALL IN ▲',allOut:'ALL OUT ▼',dcaTitle:'Staggered DCA',orders:'Orders:',
+    totalOrder:'Total order ≈ ',execute:'Execute',buyBtc:'▲  BUY BTC',sellBtc:'▼  SELL BTC',
+    marketPrice:'Market price · educational simulation',open:'Open',high:'High 24h',low:'Low 24h',
+    dominance:'BTC Dominance',updateBar:'Live price via <strong>CoinCap WebSocket</strong> · Educational simulation',
+    volatility:'Sim. volatility',volLow:'Calm',volMed:'Normal',volHigh:'Turbo',pause:'⏸ Pause',resume:'▶ Resume',
+    evtTitle:'Scenarios & Events — Bitcoin Impact',tabPast:'Past',tabNow:'Today 18/03',tabFut:'Future',
+    bullish:'Bullish Scenarios',bearish:'Bearish Scenarios',portfolio:'Portfolio',cashUsd:'Cash USD',
+    btcHeld2:'BTC held',btcValue:'BTC value',total:'Total',avgBuy:'Avg. buy price',
+    tradeLog:'Trade log',noTrades:'No trades yet.',footerSim:'Educational simulation only · Not financial advice',
+    footerSrc:'Live price:',modalTitle:'Event triggered',modeFree:'🚀 Free simulation',
+    modeFreeSub:'Price deviates freely — does not return to live',
+    modeReturn:'🔄 Simulate then return to live',
+    modeReturnSub:'Price deviates for ~60s then converges back to real market price',
+    rememberChoice:'Apply this choice to all future events (until Back to live is pressed)',
+    cancel:'Cancel',suggestedLabel:'Suggested scenario today',
+    simFree:'🚀 Free sim',simReturn:'🔄 Sim + return',simActive:'Simulation active',
+    insufficient:'⚠️ Insufficient funds',btcInsuff:'⚠️ Insufficient BTC',
+    invalidAmt:'⚠️ Invalid amount',dcaBuy:'DCA BUY',dcaSell:'DCA SELL',
+    staggeredOrders:'staggered orders (decreasing prices)',staggeredOrdersSell:'staggered orders (increasing prices)',
+    dcaRemaining:'DCA: remaining orders',backLiveLog:'↩ Price re-synced with live market',
+    wsConnected:'🔗 CoinCap WebSocket connected',wsFallback:'⚠️ WebSocket unavailable — simulation mode',
+    reconnecting:'Reconnecting in 5s…',simulated:'Simulated (fallback)',liveLabel:'Live · CoinCap',
+    singleOrder:'Single order',moreOrders:'more orders…',
+  },
+  fr:{
+    title:'Bitcoin Simulator',subtitle:'Mercredi 18 mars 2026 · Simulation pédagogique',
+    connecting:'Connexion…',livePrice:'Prix live',fomcPill:'FOMC · 14h ET aujourd\'hui',
+    mktCap:'Market Cap',nasdaq:'Nasdaq (clôt. 17/3)',wti:'WTI Pétrole',fedRate:'Taux Fed',
+    backToLive:'↩ Retour au prix live',twLabel:'Liquidités & Ordre',cashAvail:'Cash disponible',
+    readyInvest:'USD · prêt à investir',btcHeld:'BTC détenu',mode:'Mode',modePct:'% Portefeuille',
+    share:'Part',allIn:'ALL IN ▲',allOut:'ALL OUT ▼',dcaTitle:'DCA échelonné',orders:'Ordres :',
+    totalOrder:'Total ordre ≈ ',execute:'Exécuter',buyBtc:'▲  ACHETER BTC',sellBtc:'▼  VENDRE BTC',
+    marketPrice:'Prix marché · simulation pédagogique',open:'Ouverture',high:'Haut 24h',low:'Bas 24h',
+    dominance:'Dominance BTC',updateBar:'Prix live via <strong>CoinCap WebSocket</strong> · Simulation pédagogique',
+    volatility:'Volatilité sim.',volLow:'Calme',volMed:'Normale',volHigh:'Turbo',pause:'⏸ Pause',resume:'▶ Reprendre',
+    evtTitle:'Scénarios & Événements — Impact Bitcoin',tabPast:'Passé',tabNow:"Aujourd'hui 18/03",tabFut:'Futur',
+    bullish:'Scénarios Haussiers',bearish:'Scénarios Baissiers',portfolio:'Portefeuille',cashUsd:'Cash USD',
+    btcHeld2:'BTC détenu',btcValue:'Valeur BTC',total:'Total',avgBuy:'Prix moy. achat',
+    tradeLog:'Journal des trades',noTrades:'Aucun trade pour l\'instant.',
+    footerSim:'Simulation pédagogique uniquement · Pas un conseil financier',
+    footerSrc:'Prix live :',modalTitle:'Événement déclenché',modeFree:'🚀 Simulation libre',
+    modeFreeSub:'Le prix dévie librement selon l\'impact — ne revient pas au live',
+    modeReturn:'🔄 Simulation puis retour live',
+    modeReturnSub:'Le prix dévie pendant ~60s puis converge progressivement vers le prix réel',
+    rememberChoice:'Appliquer ce choix à tous les événements futurs (jusqu\'à \'Retour live\')',
+    cancel:'Annuler',suggestedLabel:'Scénario suggéré aujourd\'hui',
+    simFree:'🚀 Sim. libre',simReturn:'🔄 Sim. + retour',simActive:'Simulation active',
+    insufficient:'⚠️ Fonds insuff.',btcInsuff:'⚠️ BTC insuff.',
+    invalidAmt:'⚠️ Montant invalide',dcaBuy:'DCA ACHAT',dcaSell:'DCA VENTE',
+    staggeredOrders:'ordres échelonnés (prix décroissants)',staggeredOrdersSell:'ordres échelonnés (prix croissants)',
+    dcaRemaining:'DCA : ordres restants',backLiveLog:'↩ Prix resynchronisé avec le marché réel',
+    wsConnected:'🔗 WebSocket CoinCap connecté',wsFallback:'⚠️ WebSocket indisponible — mode simulation',
+    reconnecting:'Reconnexion dans 5s…',simulated:'Simulé (fallback)',liveLabel:'Live · CoinCap',
+    singleOrder:'Ordre unique',moreOrders:'ordres supplémentaires…',
+  },
+  es:{
+    title:'Simulador Bitcoin',subtitle:'Miércoles 18 marzo 2026 · Simulación educativa',
+    connecting:'Conectando…',livePrice:'Precio en vivo',fomcPill:'FOMC · 14h ET hoy',
+    mktCap:'Cap. mercado',nasdaq:'Nasdaq (cierre 17/3)',wti:'Petróleo WTI',fedRate:'Tipo Fed',
+    backToLive:'↩ Volver al precio real',twLabel:'Liquidez & Orden',cashAvail:'Efectivo disponible',
+    readyInvest:'USD · listo para invertir',btcHeld:'BTC en cartera',mode:'Modo',modePct:'% Cartera',
+    share:'Parte',allIn:'TODO DENTRO ▲',allOut:'TODO FUERA ▼',dcaTitle:'DCA escalonado',orders:'Órdenes:',
+    totalOrder:'Total orden ≈ ',execute:'Ejecutar',buyBtc:'▲  COMPRAR BTC',sellBtc:'▼  VENDER BTC',
+    marketPrice:'Precio mercado · simulación educativa',open:'Apertura',high:'Máx 24h',low:'Mín 24h',
+    dominance:'Dominancia BTC',updateBar:'Precio en vivo via <strong>CoinCap WebSocket</strong> · Simulación educativa',
+    volatility:'Volatilidad sim.',volLow:'Calma',volMed:'Normal',volHigh:'Turbo',pause:'⏸ Pausa',resume:'▶ Reanudar',
+    evtTitle:'Escenarios & Eventos — Impacto Bitcoin',tabPast:'Pasado',tabNow:'Hoy 18/03',tabFut:'Futuro',
+    bullish:'Escenarios Alcistas',bearish:'Escenarios Bajistas',portfolio:'Cartera',cashUsd:'Efectivo USD',
+    btcHeld2:'BTC en cartera',btcValue:'Valor BTC',total:'Total',avgBuy:'Precio medio compra',
+    tradeLog:'Registro de operaciones',noTrades:'Sin operaciones aún.',
+    footerSim:'Solo simulación educativa · No es asesoramiento financiero',
+    footerSrc:'Precio en vivo:',modalTitle:'Evento activado',modeFree:'🚀 Simulación libre',
+    modeFreeSub:'El precio se desvía libremente — no regresa al precio real',
+    modeReturn:'🔄 Simular y volver al precio real',
+    modeReturnSub:'El precio se desvía ~60s y luego converge gradualmente al precio real',
+    rememberChoice:'Aplicar esta elección a todos los eventos futuros (hasta pulsar Volver al precio real)',
+    cancel:'Cancelar',suggestedLabel:'Escenario sugerido hoy',
+    simFree:'🚀 Sim. libre',simReturn:'🔄 Sim. + vuelta',simActive:'Simulación activa',
+    insufficient:'⚠️ Fondos insuf.',btcInsuff:'⚠️ BTC insuf.',
+    invalidAmt:'⚠️ Monto inválido',dcaBuy:'DCA COMPRA',dcaSell:'DCA VENTA',
+    staggeredOrders:'órdenes escalonadas (precios decrecientes)',staggeredOrdersSell:'órdenes escalonadas (precios crecientes)',
+    dcaRemaining:'DCA: órdenes restantes',backLiveLog:'↩ Precio resincronizado con el mercado real',
+    wsConnected:'🔗 WebSocket CoinCap conectado',wsFallback:'⚠️ WebSocket no disponible — modo simulación',
+    reconnecting:'Reconectando en 5s…',simulated:'Simulado (fallback)',liveLabel:'Live · CoinCap',
+    singleOrder:'Orden única',moreOrders:'órdenes más…',
+  }
+};
+let lang='en';
+function t(k){return LANGS[lang][k]||LANGS.en[k]||k;}
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n;
+    if(k==='updateBar'||k==='totalOrder'){el.innerHTML=t(k)+(k==='totalOrder'?'<strong id="tval">$0</strong>':'');}
+    else el.textContent=t(k);
+  });
+  // Pause button special case
+  const pb=document.getElementById('pbtn');
+  if(pb)pb.textContent=paused?t('resume'):t('pause');
+  // Re-render events for suggested banner
+  renderSuggested(currentCat);
+  // Re-render DCA preview
+  renderDcaPreview();
+}
+document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',function(){
+  lang=this.dataset.lang;
+  document.querySelectorAll('.lang-btn').forEach(x=>x.classList.remove('act'));
+  this.classList.add('act');
+  applyLang();
+}));
+
+// ═══════════════════════════════════════════════════════
+// STATE
 // ═══════════════════════════════════════════════════════
 const SUPPLY=19700000,INIT=100000;
 const vols={low:.0004,med:.0011,high:.0026};
-
 let price=0,OPEN=0,hi=0,lo=Infinity;
 let paused=false,volMode='med',shock=0;
 let cash=INIT,btc=0,totalCost=0,avgBuy=0;
-
-// Price mode: 'live' = real WS price + sim drift | 'sim_free' = fully simulated | 'sim_return' = sim + returns to live
-let priceMode='live'; // live | sim_free | sim_return
-let livePrice=0;       // last known real price from WS
-let simReturnTarget=0; // target price to return to
-let simReturnTimer=0;  // ticks before starting return
-
-// Amount & DCA
-let amountMode='pct'; // pct | btc | usd
+let priceMode='live';
+let livePrice=0;
+let simReturnTimer=0;
+let amountMode='pct';
 let dcaSteps=1;
 let pendingDcaOrders=[];
+// Remembered sim mode choice ('free' | 'return' | null = ask each time)
+let rememberedSimMode=null;
 
 // ═══════════════════════════════════════════════════════
-// HIST DATA
+// HIST
 // ═══════════════════════════════════════════════════════
 const HIST={
   '2020':{d:[7200,8500,6500,7100,9000,10000,11000,11800,10500,13000,15000,19000,29000],c:'#3b82f6'},
@@ -493,78 +604,77 @@ const HIST={
 // ═══════════════════════════════════════════════════════
 const SUGGESTED={
   now:{
-    bull:{n:'FOMC dovish — dot plot 2 cuts',desc:'Scénario le plus probable aujourd\'hui: Powell signale l\'inflation Iran comme transitoire. Dot plot → 2 coupes 2026. Probabilité ~28% selon CME FedWatch. Potentiel +$80k.',impact:'+12%'},
-    bear:{n:'FOMC hawkish + sell-the-news',desc:'Pattern le plus récurrent en 2025: BTC chute -5 à -8% dans les 48h post-FOMC, même quand la décision est attendue. La guerre Iran + WTI $97 renforce ce scénario baissier court terme.',impact:'-8%'}
+    bull:{n:'FOMC dovish — dot plot 2 cuts',desc:'Most likely scenario today: Powell signals Iran inflation as transitory. Dot plot → 2 cuts 2026. ~28% probability per CME FedWatch. Potential +$80k.',impact:'+12%'},
+    bear:{n:'FOMC hawkish + sell-the-news',desc:'Most recurring pattern in 2025: BTC drops -5 to -8% in 48h post-FOMC, even when decision is expected. Iran war + WTI $97 reinforces this short-term bearish scenario.',impact:'-8%'}
   },
   past:{
-    bull:{n:'ETF Spot BlackRock/Fidelity',desc:'Événement le plus structurellement bullish de l\'histoire récente. $10Md entrants en 2 mois, changement permanent du marché.',impact:'+25%'},
-    bear:{n:'FTX implosion',desc:'Événement le plus destructeur du cycle. $8Md de fonds clients disparus, contagion totale, bottom à $15,479.',impact:'-25%'}
+    bull:{n:'BlackRock/Fidelity Spot ETF',desc:'Most structurally bullish event in recent history. $10B inflows in 2 months, permanent market change.',impact:'+25%'},
+    bear:{n:'FTX implosion',desc:'Most destructive event of the cycle. $8B of client funds gone, total contagion, bottom at $15,479.',impact:'-25%'}
   },
   future:{
-    bull:{n:'Loi SBR fédérale US',desc:'Si le Congrès entérine la Strategic Bitcoin Reserve: l\'État américain devient acheteur structurel. 19 projets en cours dans 8 États.',impact:'+20%'},
-    bear:{n:'Récession US — jobs data',desc:'Chômage 4.4% + 3 mois consécutifs de mauvais payrolls = récession pricée. BTC corrélé TradFi en sell-off généralisé.',impact:'-20%'}
+    bull:{n:'US Federal SBR Law',desc:'If Congress ratifies the Strategic Bitcoin Reserve: the US government becomes a structural buyer. 19 bills in 8 states.',impact:'+20%'},
+    bear:{n:'US Recession — jobs data',desc:'4.4% unemployment + 3 consecutive bad payroll months = priced recession. BTC correlated TradFi in generalized sell-off.',impact:'-20%'}
   }
 };
-
 const EVTS={
   past:{
     bull:[
-      {n:'ETF Spot BlackRock/Fidelity',d:'Jan 2024',s:+25,desc:'SEC approuve IBIT+FBTC. $10Md en 2 mois. Changement structurel permanent du marché crypto.',src:'SEC / BlackRock / CoinDesk',badge:'ext'},
-      {n:'Trump — Strategic Bitcoin Reserve',d:'Mars 2025',s:+18,desc:'Décret exécutif créant la SBR US. Le gouvernement fédéral devient hodler officiel.',src:'WhiteHouse.gov / CNBC',badge:'ext'},
-      {n:'ATH $126,296',d:'6 oct 2025',s:+10,desc:'Record absolu. ETF inflows + adoption institutionnelle + cycle post-halving. Peak du cycle.',src:'CoinDesk / Fortune',badge:'ext'},
-      {n:'SVB collapse → refuge BTC',d:'Mars 2023',s:+12,desc:'Faillite Silicon Valley Bank paradoxalement bullish. Fuite vers actifs alternatifs. BTC +30%.',src:'FDIC / Reuters',badge:'ext'},
-      {n:'Tesla + MicroStrategy BTC',d:'Fév 2021',s:+20,desc:'Tesla $1.5Md + MSTR >70k BTC. Adoption institutionnelle sans précédent.',src:'SEC filings / CoinTelegraph',badge:'ext'},
-      {n:'3e Halving',d:'Mai 2020',s:+8,desc:'12.5 → 6.25 BTC/bloc. Catalyseur du bull run vers $29k fin 2020.',src:'Bitcoin.org / Forbes',badge:'ext'},
+      {n:'BlackRock/Fidelity Spot ETF',d:'Jan 2024',s:+25,desc:'SEC approves IBIT+FBTC. $10B in 2 months. Permanent structural change in crypto market.',src:'SEC / BlackRock / CoinDesk',badge:'ext'},
+      {n:'Trump — Strategic Bitcoin Reserve',d:'Mar 2025',s:+18,desc:'Executive order creating US SBR. The federal government becomes an official hodler.',src:'WhiteHouse.gov / CNBC',badge:'ext'},
+      {n:'ATH $126,296',d:'Oct 6, 2025',s:+10,desc:'All-time high. ETF inflows + institutional adoption + post-halving cycle. Cycle peak.',src:'CoinDesk / Fortune',badge:'ext'},
+      {n:'SVB collapse → BTC safe haven',d:'Mar 2023',s:+12,desc:'Silicon Valley Bank failure paradoxically bullish. Flight to alternative assets. BTC +30%.',src:'FDIC / Reuters',badge:'ext'},
+      {n:'Tesla + MicroStrategy BTC',d:'Feb 2021',s:+20,desc:'Tesla $1.5B + MSTR >70k BTC. Unprecedented institutional adoption.',src:'SEC filings / CoinTelegraph',badge:'ext'},
+      {n:'3rd Halving',d:'May 2020',s:+8,desc:'12.5 → 6.25 BTC/block. Catalyst for bull run to $29k end 2020.',src:'Bitcoin.org / Forbes',badge:'ext'},
     ],
     bear:[
-      {n:'FTX implosion',d:'Nov 2022',s:-25,desc:'$8Md de fonds clients disparus. BTC → $15,479. Bottom du cycle. Contagion totale.',src:'Financial Times / CoinDesk',badge:'ext'},
-      {n:'Terra/Luna effondrement',d:'Mai 2022',s:-40,desc:'$40Md en 72h. BTC -$16k. Celsius, Three Arrows Capital contaminés.',src:'Bloomberg / WSJ',badge:'ext'},
-      {n:'COVID crash',d:'Mars 2020',s:-35,desc:'BTC $10k → $4.9k en 48h. Panique mondiale généralisée.',src:'Bloomberg / CoinDesk',badge:'ext'},
-      {n:'Ban minage Chine',d:'Mai 2021',s:-30,desc:'Pékin interdit le minage. Hashrate -50%. BTC perd $30k en 3 semaines.',src:'Reuters / CNBC',badge:'ext'},
-      {n:'Bear market 2022',d:'2022',s:-20,desc:'Hausse taux Fed agressive. BTC corrélé TradFi. -65% sur l\'année entière.',src:'ARK Invest / Bloomberg',badge:'ext'},
-      {n:'Correction post-ATH -46%',d:'Q4 2025',s:-20,desc:'Prise de profit post-$126k. BTC → $67k fév 2026. Tension Iran + risk-off.',src:'Caleb & Brown / CoinDesk',badge:'ext'},
+      {n:'FTX implosion',d:'Nov 2022',s:-25,desc:'$8B of client funds gone. BTC → $15,479. Cycle bottom. Total contagion.',src:'Financial Times / CoinDesk',badge:'ext'},
+      {n:'Terra/Luna collapse',d:'May 2022',s:-40,desc:'$40B in 72h. BTC -$16k. Celsius, Three Arrows Capital contaminated.',src:'Bloomberg / WSJ',badge:'ext'},
+      {n:'COVID crash',d:'Mar 2020',s:-35,desc:'BTC $10k → $4.9k in 48h. Generalized global panic.',src:'Bloomberg / CoinDesk',badge:'ext'},
+      {n:'China mining ban',d:'May 2021',s:-30,desc:'Beijing bans mining. Hashrate -50%. BTC loses $30k in 3 weeks.',src:'Reuters / CNBC',badge:'ext'},
+      {n:'2022 Bear market',d:'2022',s:-20,desc:'Aggressive Fed rate hikes. BTC correlated TradFi. -65% for the full year.',src:'ARK Invest / Bloomberg',badge:'ext'},
+      {n:'Post-ATH correction -46%',d:'Q4 2025',s:-20,desc:'Profit-taking post-$126k. BTC → $67k Feb 2026. Iran tensions + risk-off.',src:'Caleb & Brown / CoinDesk',badge:'ext'},
     ]
   },
   now:{
     bull:[
-      {n:'FOMC dovish — dot plot 2 cuts',d:'18 mars · 14h ET',s:+12,desc:'Powell signale Iran transitoire. Dot plot → 2 coupes 2026. BTC peut viser $80k. Prob. 25-30% selon MEXC/99BTC.',src:'MEXC / 99Bitcoins / Kiplinger',badge:'live'},
-      {n:'Nasdaq futures +0.51%',d:'18 mars matin',s:+4,desc:'Nasdaq fut. 25,180 (+0.51%). S&P +0.53%. Si ouverture positive → risk-on corrélé BTC.',src:'Yahoo Finance Markets',badge:'live'},
-      {n:'Strategy (MSTR) +$1.57Md BTC',d:'Semaine 16-20 mars',s:+7,desc:'MicroStrategy achète 22,337 BTC à $70,200/coin. Accumulation institutionnelle agressive continue.',src:'TheStreet / Yahoo Finance',badge:'live'},
-      {n:'Nasdaq × NYSE tokenisent actions',d:'15 mars 2026',s:+9,desc:"Nasdaq + ICE s'allient à des exchanges crypto pour tokeniser les $126T du marché actions sur blockchain.",src:'CoinDesk Mar 2026',badge:'live'},
-      {n:'ETF inflows mars +$1.3Md',d:'Mars 2026 YTD',s:+8,desc:'1er mois positif depuis octobre sur ETFs spot BTC. $250M le 10 mars seul. Sentiment en amélioration.',src:'CoinDesk / Farside Investors',badge:'live'},
-      {n:'Crypto accès Fed Reserve',d:'5 mars 2026',s:+10,desc:"L'industrie crypto accède au système de paiement Federal Reserve. Signal de légitimité majeur.",src:'CoinDesk / MetaMask',badge:'live'},
+      {n:'FOMC dovish — dot plot 2 cuts',d:'Mar 18 · 2pm ET',s:+12,desc:'Powell signals Iran as transitory. Dot plot → 2 cuts 2026. BTC could target $80k. Prob. 25-30% per MEXC/99BTC.',src:'MEXC / 99Bitcoins / Kiplinger',badge:'live'},
+      {n:'Nasdaq futures +0.51%',d:'Mar 18 morning',s:+4,desc:'Nasdaq fut. 25,180 (+0.51%). S&P +0.53%. If positive open → risk-on correlated BTC.',src:'Yahoo Finance Markets',badge:'live'},
+      {n:'Strategy (MSTR) +$1.57B BTC',d:'Week Mar 16-20',s:+7,desc:'MicroStrategy buys 22,337 BTC at $70,200/coin. Aggressive institutional accumulation continues.',src:'TheStreet / Yahoo Finance',badge:'live'},
+      {n:'Nasdaq × NYSE tokenize stocks',d:'Mar 15, 2026',s:+9,desc:'Nasdaq + ICE ally with crypto exchanges to tokenize $126T stock market on blockchain.',src:'CoinDesk Mar 2026',badge:'live'},
+      {n:'ETF inflows March +$1.3B',d:'March 2026 YTD',s:+8,desc:'First positive month since October on spot BTC ETFs. $250M on March 10 alone. Improving sentiment.',src:'CoinDesk / Farside Investors',badge:'live'},
+      {n:'Crypto access to Fed Reserve',d:'Mar 5, 2026',s:+10,desc:'Crypto industry accesses Federal Reserve payment system. Major legitimacy signal.',src:'CoinDesk / MetaMask',badge:'live'},
     ],
     bear:[
-      {n:'FOMC hawkish — 0 cut 2026',d:'18 mars · 14h ET',s:-10,desc:'Dot plot → 0 coupe, Powell caution sur inflation Iran. Sell-the-news. BTC a chuté après 7/8 FOMC en 2025.',src:'MEXC / Phemex / 99Bitcoins',badge:'live'},
-      {n:'Guerre Iran — WTI $97+',d:'18 mars · ACTUEL',s:-6,desc:'Brent $103.50 (+3.2%). Pression inflationniste. Fed bloquée. Risk-off potentiel sur actifs spéculatifs.',src:'Schwab / CoinDesk / TheStreet',badge:'live'},
-      {n:'Sell-the-news pattern FOMC',d:'18 mars · post 14h',s:-7,desc:'Pattern historique: BTC -5 à -8% dans 48h post-annonce. Même attendue = vente. 7/8 FOMC 2025.',src:'Phemex Research / MEXC Blog',badge:'live'},
-      {n:'Rejet $75k — canal cassé',d:'18 mars · technique',s:-8,desc:'BTC a tapé $75k et rejeté dans le canal. Même pattern que fin fév avant flush vers $64k. Support: $72k.',src:'Cryptonews / Yahoo Finance',badge:'live'},
-      {n:'Powell succession — incertitude',d:'Mai 2026',s:-5,desc:'Nomination Kevin Warsh (hawkish) bloquée par litige judiciaire. Chaque discours Powell amplifié.',src:'CNBC / Cointribune / Reuters',badge:'live'},
-      {n:'Tarifs Trump 15% — stagflation',d:'Mars 2026',s:-6,desc:'Tarifs globaux 15% + choc pétrolier = risque stagflationniste. Pire cas pour risk assets.',src:'MEXC / TheStreet / Kiplinger',badge:'live'},
+      {n:'FOMC hawkish — 0 cuts 2026',d:'Mar 18 · 2pm ET',s:-10,desc:'Dot plot → 0 cuts, Powell cautious on Iran inflation. Sell-the-news. BTC fell after 7/8 FOMCs in 2025.',src:'MEXC / Phemex / 99Bitcoins',badge:'live'},
+      {n:'Iran war — WTI $97+',d:'Mar 18 · CURRENT',s:-6,desc:'Brent $103.50 (+3.2%). Inflationary pressure. Fed blocked. Potential risk-off on speculative assets.',src:'Schwab / CoinDesk / TheStreet',badge:'live'},
+      {n:'Sell-the-news FOMC pattern',d:'Mar 18 · post 2pm',s:-7,desc:'Historical pattern: BTC -5 to -8% in 48h post-announcement. Even expected = selling. 7/8 FOMCs 2025.',src:'Phemex Research / MEXC Blog',badge:'live'},
+      {n:'$75k rejection — broken channel',d:'Mar 18 · technical',s:-8,desc:'BTC hit $75k and rejected within channel. Same pattern as late Feb before flush to $64k. Support: $72k.',src:'Cryptonews / Yahoo Finance',badge:'live'},
+      {n:'Powell succession — uncertainty',d:'May 2026',s:-5,desc:'Kevin Warsh (hawkish) nomination blocked by lawsuit. Each Powell speech amplified.',src:'CNBC / Cointribune / Reuters',badge:'live'},
+      {n:'Trump tariffs 15% — stagflation',d:'Mar 2026',s:-6,desc:'Global 15% tariffs + oil shock = stagflation risk. Worst case for risk assets.',src:'MEXC / TheStreet / Kiplinger',badge:'live'},
     ]
   },
   future:{
     bull:[
-      {n:'Breakout $80k post-FOMC dovish',d:'T2 2026',s:+15,desc:'Si BTC casse $74k en volume après signal dovish: techniquement ouvert vers $80k puis $90-100k.',src:'Extrapolé CoinDesk / 99BTC',badge:'fut'},
-      {n:'1ère baisse taux Fed',d:'Juin–Oct 2026',s:+12,desc:'CME FedWatch pricait juin avant Iran. JPMorgan: 1 coupe 2026. Historiquement BTC rally 2 semaines avant.',src:'CME FedWatch / JPMorgan',badge:'fut'},
-      {n:'Loi SBR fédérale US',d:'2026',s:+20,desc:"19 projets SBR dans 8 États. Si Congrès: État américain = acheteur structurel massif. Demand inélastique.",src:'Caleb & Brown / Congress.gov',badge:'fut'},
-      {n:'Résolution conflit Iran',d:'T2–T3 2026',s:+10,desc:'Hormuz rouvre: pétrole baisse, inflation reflue, Fed coupe. Double bullish BTC potentiel +15-25%.',src:'Extrapolé Reuters / Schwab',badge:'fut'},
-      {n:'ATH > $150k bull case',d:'2026–2027',s:+25,desc:'Scénario ARK Invest: SBR + baisses taux + ETF inflows. Cycle pas terminé. Bull case $200k+.',src:'ARK Invest / Bitwise',badge:'fut'},
-      {n:'Coinbase × Bybit deal officiel',d:'T2 2026',s:+8,desc:'Partenariat évoqué en pre-market. Si officiel: consolidation exchanges, volume institutionnel en hausse.',src:'Extrapolé TheStreet Mar 2026',badge:'fut'},
+      {n:'Breakout $80k post-dovish FOMC',d:'Q2 2026',s:+15,desc:'If BTC breaks $74k on volume after dovish signal: technically open to $80k then $90-100k.',src:'Extrapolated CoinDesk / 99BTC',badge:'fut'},
+      {n:'First Fed rate cut',d:'Jun–Oct 2026',s:+12,desc:'CME FedWatch priced June before Iran. JPMorgan: 1 cut 2026. Historically BTC rallies 2 weeks before.',src:'CME FedWatch / JPMorgan',badge:'fut'},
+      {n:'US Federal SBR Law',d:'2026',s:+20,desc:'19 SBR bills in 8 states. If Congress: US government = massive structural buyer. Inelastic demand.',src:'Caleb & Brown / Congress.gov',badge:'fut'},
+      {n:'Iran conflict resolution',d:'Q2–Q3 2026',s:+10,desc:'Hormuz reopens: oil drops, inflation eases, Fed cuts. Double bullish BTC potential +15-25%.',src:'Extrapolated Reuters / Schwab',badge:'fut'},
+      {n:'ATH > $150k bull case',d:'2026–2027',s:+25,desc:'ARK Invest scenario: SBR + rate cuts + ETF inflows. Cycle not over. Bull case $200k+.',src:'ARK Invest / Bitwise',badge:'fut'},
+      {n:'Coinbase × Bybit official deal',d:'Q2 2026',s:+8,desc:'Partnership mentioned in pre-market. If official: exchange consolidation, rising institutional volume.',src:'Extrapolated TheStreet Mar 2026',badge:'fut'},
     ],
     bear:[
-      {n:'Prolongation guerre Iran > 6 mois',d:'T2–T3 2026',s:-15,desc:'Inflation structurelle, Fed bloquée, récession US possible. BTC corrélé TradFi en risk-off prolongé.',src:'Extrapolé Schwab / Kiplinger',badge:'fut'},
-      {n:'Warsh Fed chair — hawkish pivot',d:'Mai 2026',s:-8,desc:'Kevin Warsh (plus hawkish) confirmé: re-pricing des taux 2026. Pression sur BTC et risk assets.',src:'Extrapolé CNBC / TheStreet',badge:'fut'},
-      {n:'Récession US — jobs data',d:'T2–T3 2026',s:-20,desc:'Chômage 4.4% + payrolls -92k fév. Si 3 mauvais mois: récession pricée. BTC sell-off généralisé.',src:'BLS / Fed Reserve / EBC Financial',badge:'fut'},
-      {n:'Quantum computing — ECDSA',d:'2026–2028',s:-15,desc:'IBM/Google avancées quantiques: risque théorique sur clés privées Bitcoin. Risque existentiel long terme.',src:'Christopher Wood CNBC / Nature',badge:'fut'},
-      {n:'Réglementation stablecoins stricte',d:'2026',s:-8,desc:'Si loi GENIUS Act crée friction sur USDT/USDC: liquidité crypto réduite, volumes en baisse.',src:'Extrapolé Congress.gov / Bloomberg',badge:'fut'},
-      {n:'5e Halving — impact marginal',d:'Avr 2028',s:-3,desc:'Reward 3.125 → 1.5625. Impact supply faible: >95% miné. Déçoit si marché espérait rally fort.',src:'Bitcoin.org / Spark Money',badge:'fut'},
+      {n:'Iran war extension > 6 months',d:'Q2–Q3 2026',s:-15,desc:'Structural inflation, Fed blocked, possible US recession. BTC correlated TradFi in prolonged risk-off.',src:'Extrapolated Schwab / Kiplinger',badge:'fut'},
+      {n:'Warsh Fed chair — hawkish pivot',d:'May 2026',s:-8,desc:'Kevin Warsh (more hawkish) confirmed: 2026 rate re-pricing. Pressure on BTC and risk assets.',src:'Extrapolated CNBC / TheStreet',badge:'fut'},
+      {n:'US Recession — jobs data',d:'Q2–Q3 2026',s:-20,desc:'4.4% unemployment + bad payrolls. If 3 bad months: priced recession. BTC generalized sell-off.',src:'BLS / Fed Reserve / EBC Financial',badge:'fut'},
+      {n:'Quantum computing — ECDSA',d:'2026–2028',s:-15,desc:'IBM/Google quantum advances: theoretical risk on Bitcoin private keys. Long-term existential risk.',src:'Christopher Wood CNBC / Nature',badge:'fut'},
+      {n:'Strict stablecoin regulation',d:'2026',s:-8,desc:'If GENIUS Act creates friction on USDT/USDC: reduced crypto liquidity, lower volumes.',src:'Extrapolated Congress.gov / Bloomberg',badge:'fut'},
+      {n:'5th Halving — marginal impact',d:'Apr 2028',s:-3,desc:'Reward 3.125 → 1.5625. Weak supply impact: >95% mined. Disappoints if market expected strong rally.',src:'Bitcoin.org / Spark Money',badge:'fut'},
     ]
   }
 };
 
 // ═══════════════════════════════════════════════════════
-// WEBSOCKET — CoinCap
+// WEBSOCKET
 // ═══════════════════════════════════════════════════════
 let ws=null,wsReconnectTimer=null,wsPingInterval=null,wsConnected=false;
 function connectWS(){
@@ -575,19 +685,16 @@ function connectWS(){
   if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
   if(ws){try{ws.close();}catch(e){}ws=null;}
   statusEl.className='ws-status';
-  labelEl.textContent='Connexion…';
+  labelEl.textContent=t('connecting');
   try{
     ws=new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin');
     ws.onopen=()=>{
       wsConnected=true;
       statusEl.className='ws-status connected';
-      labelEl.textContent='Live · CoinCap';
-      sourceEl.textContent='Prix live';
-      // Ping every 20s to keep connection alive
+      labelEl.textContent=t('liveLabel');
+      sourceEl.textContent=t('livePrice');
       wsPingInterval=setInterval(()=>{
-        if(ws&&ws.readyState===WebSocket.OPEN){
-          try{ws.send(JSON.stringify({type:'ping'}));}catch(e){}
-        }
+        if(ws&&ws.readyState===WebSocket.OPEN){try{ws.send(JSON.stringify({type:'ping'}));}catch(e){}}
       },20000);
     };
     ws.onmessage=e=>{
@@ -597,51 +704,36 @@ function connectWS(){
           const p=parseFloat(d.bitcoin);
           if(p>0){
             livePrice=p;
-            if(price===0||priceMode==='live'){
-              if(price===0){OPEN=p;hi=p;lo=p;document.getElementById('m-open').textContent=fmt(p);}
-              price=p;
-            }
+            if(price===0){OPEN=p;hi=p;lo=p;price=p;document.getElementById('m-open').textContent=fmt(p);}
+            else if(priceMode==='live'){price=p;}
           }
         }
       }catch(err){}
     };
-    ws.onerror=()=>{
-      wsConnected=false;
-      if(livePrice===0)fallbackSim();
-      else scheduleReconnect();
-    };
+    ws.onerror=()=>{wsConnected=false;if(livePrice===0)fallbackSim();else scheduleReconnect();};
     ws.onclose=()=>{
       wsConnected=false;
       if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
-      if(livePrice===0)fallbackSim();
-      else scheduleReconnect();
+      if(livePrice===0)fallbackSim();else scheduleReconnect();
     };
   }catch(err){fallbackSim();}
 }
 function scheduleReconnect(){
-  const statusEl=document.getElementById('ws-status');
-  const labelEl=document.getElementById('ws-label');
-  statusEl.className='ws-status simulated';
-  labelEl.textContent='Reconnexion dans 5s…';
+  const s=document.getElementById('ws-status'),l=document.getElementById('ws-label');
+  s.className='ws-status simulated';l.textContent=t('reconnecting');
   wsReconnectTimer=setTimeout(connectWS,5000);
 }
 function fallbackSim(){
-  const statusEl=document.getElementById('ws-status');
-  const labelEl=document.getElementById('ws-label');
-  const sourceEl=document.getElementById('price-source');
-  statusEl.className='ws-status simulated';
-  labelEl.textContent='Simulé (fallback)';
-  sourceEl.textContent='Prix simulé';
-  if(price===0){price=74382;OPEN=74382;hi=74382;lo=74382;livePrice=74382;}
-  // Try to reconnect every 30s even in fallback
+  const s=document.getElementById('ws-status'),l=document.getElementById('ws-label'),src=document.getElementById('price-source');
+  s.className='ws-status simulated';l.textContent=t('simulated');src.textContent=t('simulated');
+  if(price===0){price=74382;OPEN=74382;hi=74382;lo=74382;livePrice=74382;document.getElementById('m-open').textContent=fmt(74382);}
   if(!wsReconnectTimer)wsReconnectTimer=setTimeout(connectWS,30000);
 }
 
 // ═══════════════════════════════════════════════════════
 // CHART
 // ═══════════════════════════════════════════════════════
-let liveHist=[];
-let currentTF='live';
+let liveHist=[],currentTF='live';
 const ctx=document.getElementById('btcChart').getContext('2d');
 const chart=new Chart(ctx,{
   type:'line',
@@ -652,42 +744,32 @@ const chart=new Chart(ctx,{
 });
 function switchTF(tf){
   currentTF=tf;
-  document.querySelectorAll('.tft').forEach(t=>t.classList.toggle('act',t.dataset.tf===tf));
+  document.querySelectorAll('.tft').forEach(t2=>t2.classList.toggle('act',t2.dataset.tf===tf));
   if(tf==='live'){
-    chart.data.datasets[0].borderColor='#F7931A';
-    chart.data.datasets[0].backgroundColor='rgba(247,147,26,0.08)';
-    chart.data.datasets[0].data=[...liveHist];
-    chart.data.labels=liveHist.map(()=>'');
-    chart.options.scales.x.display=false;
+    chart.data.datasets[0].borderColor='#F7931A';chart.data.datasets[0].backgroundColor='rgba(247,147,26,0.08)';
+    chart.data.datasets[0].data=[...liveHist];chart.data.labels=liveHist.map(()=>'');chart.options.scales.x.display=false;
   }else{
-    const h=HIST[tf];
-    chart.data.datasets[0].borderColor=h.c;
-    chart.data.datasets[0].backgroundColor=h.c+'18';
-    chart.data.datasets[0].data=h.d;
-    chart.data.labels=h.d.map((_,i)=>'M'+(i+1));
-    chart.options.scales.x.display=true;
-    chart.options.scales.x.ticks={font:{size:9},color:'#71717a'};
+    const h=HIST[tf];chart.data.datasets[0].borderColor=h.c;chart.data.datasets[0].backgroundColor=h.c+'18';
+    chart.data.datasets[0].data=h.d;chart.data.labels=h.d.map((_,i)=>'M'+(i+1));
+    chart.options.scales.x.display=true;chart.options.scales.x.ticks={font:{size:9},color:'#71717a'};
   }
   chart.update();
 }
-document.querySelectorAll('.tft').forEach(t=>t.addEventListener('click',()=>switchTF(t.dataset.tf)));
+document.querySelectorAll('.tft').forEach(t2=>t2.addEventListener('click',()=>switchTF(t2.dataset.tf)));
 
 // ═══════════════════════════════════════════════════════
-// TICK — price engine
+// TICK
 // ═══════════════════════════════════════════════════════
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtB=n=>n.toFixed(4)+' BTC';
 
 function tick(){
   if(paused||price===0)return;
-
   const v=vols[volMode];
   let drift=(Math.random()-.499)*price*v;
-
-  if(priceMode==='live'&&livePrice>0){
-    // Gently pull simulated price toward live price
-    const pull=(livePrice-price)*0.15;
-    price+=pull+drift*0.3;
+  if(priceMode==='live'){
+    // Price is already set to livePrice in ws.onmessage — just add tiny drift for visual smoothness
+    if(livePrice>0)price=livePrice+(Math.random()-.5)*livePrice*0.0002;
   } else if(priceMode==='sim_free'){
     if(shock!==0){drift+=price*(shock/100)*.18;shock*=.82;if(Math.abs(shock)<.05)shock=0;}
     price+=drift;
@@ -696,219 +778,134 @@ function tick(){
     price+=drift;
     simReturnTimer--;
     if(simReturnTimer<=0&&livePrice>0){
-      // Pull back toward live price
-      const pull=(livePrice-price)*0.04;
-      price+=pull;
+      const pull=(livePrice-price)*0.05;price+=pull;
       if(Math.abs(price-livePrice)<livePrice*0.002){
-        // Close enough — snap back to live
-        price=livePrice;
-        priceMode='live';
+        price=livePrice;priceMode='live';
         document.getElementById('sim-banner').classList.add('hidden');
-        addLog('↩ Prix resynchronisé avec le marché réel');
+        addLog(t('backLiveLog'));
       }
     }
   }
-
   price=Math.max(10000,Math.min(500000,price));
   hi=Math.max(hi,price);lo=Math.min(lo,price);
-
-  liveHist.push(+price.toFixed(0));
-  if(liveHist.length>120)liveHist.shift();
-
-  const chg=price-OPEN,pct=(chg/OPEN)*100;
+  liveHist.push(+price.toFixed(0));if(liveHist.length>120)liveHist.shift();
+  const chg=price-OPEN,pct=OPEN>0?(chg/OPEN)*100:0;
   document.getElementById('pdisplay').textContent=fmt(price);
-  const cd=document.getElementById('cdisplay');
-  const sg=chg>=0?'+':'';
+  const cd=document.getElementById('cdisplay'),sg=chg>=0?'+':'';
   cd.textContent=sg+Math.round(chg).toLocaleString()+' ('+sg+pct.toFixed(2)+'%)';
   cd.className='price-chg '+(chg>=0?'up':'dn');
   document.getElementById('m-high').textContent=fmt(hi);
   document.getElementById('m-low').textContent=fmt(lo);
   document.getElementById('m-cap').textContent='$'+(price*SUPPLY/1e12).toFixed(2)+'T';
-
   if(currentTF==='live'){chart.data.datasets[0].data=[...liveHist];chart.data.labels=liveHist.map(()=>'');chart.update('none');}
-  updateAmountDisplay();
-  updatePort();
-
-  // Execute pending DCA orders
+  updateAmountDisplay();updatePort();
   if(pendingDcaOrders.length>0){
     const order=pendingDcaOrders.shift();
-    executeSingleOrder(order.type,order.qty,order.usd);
-    if(pendingDcaOrders.length>0){
-      addLog(`⏳ DCA: ${pendingDcaOrders.length} ordre(s) restant(s)`);
-    }
+    executeSingleOrder(order.type,order.qty);
+    if(pendingDcaOrders.length>0)addLog(`⏳ ${t('dcaRemaining')}: ${pendingDcaOrders.length}`);
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// AMOUNT & DCA LOGIC
+// AMOUNT & DCA
 // ═══════════════════════════════════════════════════════
 function getOrderQty(side){
-  // Returns {qty, usdValue} or null
   if(amountMode==='pct'){
     const pct=parseInt(document.getElementById('pct-slider').value)/100;
-    if(side==='buy'){
-      const usd=cash*pct;
-      const qty=usd/price;
-      return{qty,usdValue:usd};
-    } else {
-      const qty=btc*pct;
-      const usdValue=qty*price;
-      return{qty,usdValue};
-    }
+    if(side==='buy'){const usd=cash*pct;return{qty:usd/price,usdValue:usd};}
+    else{const qty=btc*pct;return{qty,usdValue:qty*price};}
   } else if(amountMode==='btc'){
     const qty=parseFloat(document.getElementById('btc-input').value)||0;
     return{qty,usdValue:qty*price};
-  } else if(amountMode==='usd'){
+  } else {
     const usd=parseFloat(document.getElementById('usd-input').value)||0;
-    const qty=usd/price;
-    return{qty,usdValue:usd};
+    return{qty:usd/price,usdValue:usd};
   }
-  return null;
 }
-
-function buildDcaOrders(type,totalQty,totalUsd){
+function buildDcaOrders(type,totalQty){
   const orders=[];
-  const n=dcaSteps;
-  for(let i=0;i<n;i++){
-    const frac=1/n;
-    const q=totalQty*frac;
-    const u=totalUsd*frac;
-    // Price echelon: buys go lower (discount), sells go higher (premium)
-    const priceMult= type==='buy' ? (1-(i*0.005)) : (1+(i*0.005));
-    orders.push({type,qty:q,usd:u,priceMult,label:`Ordre ${i+1}/${n}`});
-  }
+  for(let i=0;i<dcaSteps;i++)orders.push({type,qty:totalQty/dcaSteps});
   return orders;
 }
-
 function renderDcaPreview(){
   const preview=document.getElementById('dca-preview');
   if(!price){preview.innerHTML='';return;}
-  const side_buy=getOrderQty('buy');
-  const side_sell=getOrderQty('sell');
+  const sb=getOrderQty('buy'),ss=getOrderQty('sell');
   if(dcaSteps===1){
-    const buyUsd=side_buy?side_buy.usdValue:0;
-    const sellUsd=side_sell?side_sell.usdValue:0;
-    preview.innerHTML=`<div class="dca-row"><span class="dca-row-label">Ordre unique</span><span class="dca-row-val">${fmt(buyUsd)} achat / ${fmt(sellUsd)} vente</span></div>`;
+    const buyUsd=sb?sb.usdValue:0,sellUsd=ss?ss.usdValue:0;
+    preview.innerHTML=`<div class="dca-row"><span class="dca-row-label">${t('singleOrder')}</span><span class="dca-row-val">${fmt(buyUsd)} / ${fmt(sellUsd)}</span></div>`;
     return;
   }
-  const n=dcaSteps;
   let html='';
-  for(let i=0;i<Math.min(n,3);i++){
-    const buyPct=(1-(i*0.5)).toFixed(1);
-    const sellPct=(1+(i*0.5)).toFixed(1);
-    const buyP=price*(1-(i*0.005));
-    const sellP=price*(1+(i*0.005));
-    const buyQ=side_buy?(side_buy.qty/n):0;
-    const sellQ=side_sell?(side_sell.qty/n):0;
-    html+=`<div class="dca-row"><span class="dca-row-label">Ordre ${i+1}</span><span class="dca-row-buy">▲ ${buyQ.toFixed(4)} BTC @ ~${fmt(buyP)}</span><span class="dca-row-sell">▼ ${sellQ.toFixed(4)} BTC @ ~${fmt(sellP)}</span></div>`;
+  for(let i=0;i<Math.min(dcaSteps,3);i++){
+    const buyP=price*(1-(i*0.005)),sellP=price*(1+(i*0.005));
+    const buyQ=sb?(sb.qty/dcaSteps):0,sellQ=ss?(ss.qty/dcaSteps):0;
+    html+=`<div class="dca-row"><span class="dca-row-label">#${i+1}</span><span class="dca-row-buy">▲ ${buyQ.toFixed(4)} @ ~${fmt(buyP)}</span><span class="dca-row-sell">▼ ${sellQ.toFixed(4)} @ ~${fmt(sellP)}</span></div>`;
   }
-  if(n>3)html+=`<div class="dca-row"><span class="dca-row-label" style="font-style:italic;">+ ${n-3} ordres supplémentaires…</span></div>`;
+  if(dcaSteps>3)html+=`<div class="dca-row"><span class="dca-row-label" style="font-style:italic;">+ ${dcaSteps-3} ${t('moreOrders')}</span></div>`;
   preview.innerHTML=html;
 }
-
 function updateAmountDisplay(){
   if(!price)return;
-  const bqBuy=getOrderQty('buy');
-  const bqSell=getOrderQty('sell');
-  const displayUsd=bqBuy?bqBuy.usdValue:(bqSell?bqSell.usdValue:0);
-  document.getElementById('tval').textContent=fmt(displayUsd);
+  const bq=getOrderQty('buy'),sq=getOrderQty('sell');
+  const u=bq?bq.usdValue:(sq?sq.usdValue:0);
+  const tv=document.getElementById('tval');if(tv)tv.textContent=fmt(u);
   renderDcaPreview();
 }
 
 // ═══════════════════════════════════════════════════════
 // TRADE EXECUTION
 // ═══════════════════════════════════════════════════════
-function executeSingleOrder(type,qty,usdValue){
+function executeSingleOrder(type,qty){
   if(type==='buy'){
     const cost=qty*price*1.0008;
-    if(cost>cash+1){addLog('⚠️ Fonds insuff. pour cet ordre DCA');return;}
+    if(cost>cash+1){addLog(t('insufficient'));return;}
     cash-=cost;totalCost+=cost;btc+=qty;avgBuy=totalCost/btc;
-    addLog('✅ ACHAT '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(cost));
+    addLog('✅ BUY '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(cost));
   } else {
-    if(qty>btc+.0001){addLog('⚠️ BTC insuff. pour cet ordre DCA');return;}
-    const proc=qty*price*.9992;
-    btc=Math.max(0,btc-qty);cash+=proc;
+    if(qty>btc+.0001){addLog(t('btcInsuff'));return;}
+    const proc=qty*price*.9992;btc=Math.max(0,btc-qty);cash+=proc;
     if(btc<.0001){btc=0;totalCost=0;avgBuy=0;}else totalCost=avgBuy*btc;
-    addLog('🔴 VENTE '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(proc));
+    addLog('🔴 SELL '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(proc));
   }
   updatePort();
 }
-
 document.getElementById('bbuy').addEventListener('click',()=>{
-  const o=getOrderQty('buy');
-  if(!o||o.qty<=0){addLog('⚠️ Montant invalide');return;}
-  if(dcaSteps===1){
-    executeSingleOrder('buy',o.qty,o.usdValue);
-  } else {
-    pendingDcaOrders=buildDcaOrders('buy',o.qty,o.usdValue);
-    addLog(`🔀 DCA ACHAT — ${dcaSteps} ordres échelonnés (prix décroissants)`);
-    // Execute first immediately
-    const first=pendingDcaOrders.shift();
-    executeSingleOrder(first.type,first.qty,first.usd);
-  }
+  const o=getOrderQty('buy');if(!o||o.qty<=0){addLog(t('invalidAmt'));return;}
+  if(dcaSteps===1){executeSingleOrder('buy',o.qty);}
+  else{pendingDcaOrders=buildDcaOrders('buy',o.qty);addLog(`🔀 ${t('dcaBuy')} — ${dcaSteps} ${t('staggeredOrders')}`);const f=pendingDcaOrders.shift();executeSingleOrder(f.type,f.qty);}
 });
-
 document.getElementById('bsell').addEventListener('click',()=>{
-  const o=getOrderQty('sell');
-  if(!o||o.qty<=0){addLog('⚠️ Montant invalide');return;}
-  if(dcaSteps===1){
-    executeSingleOrder('sell',o.qty,o.usdValue);
-  } else {
-    pendingDcaOrders=buildDcaOrders('sell',o.qty,o.usdValue);
-    addLog(`🔀 DCA VENTE — ${dcaSteps} ordres échelonnés (prix croissants)`);
-    const first=pendingDcaOrders.shift();
-    executeSingleOrder(first.type,first.qty,first.usd);
-  }
+  const o=getOrderQty('sell');if(!o||o.qty<=0){addLog(t('invalidAmt'));return;}
+  if(dcaSteps===1){executeSingleOrder('sell',o.qty);}
+  else{pendingDcaOrders=buildDcaOrders('sell',o.qty);addLog(`🔀 ${t('dcaSell')} — ${dcaSteps} ${t('staggeredOrdersSell')}`);const f=pendingDcaOrders.shift();executeSingleOrder(f.type,f.qty);}
 });
 
 // ═══════════════════════════════════════════════════════
 // AMOUNT MODE CONTROLS
 // ═══════════════════════════════════════════════════════
-document.querySelectorAll('.mode-tab').forEach(t=>t.addEventListener('click',function(){
+document.querySelectorAll('.mode-tab').forEach(tb=>tb.addEventListener('click',function(){
   amountMode=this.dataset.mode;
-  document.querySelectorAll('.mode-tab').forEach(x=>x.classList.remove('act'));
-  this.classList.add('act');
+  document.querySelectorAll('.mode-tab').forEach(x=>x.classList.remove('act'));this.classList.add('act');
   document.getElementById('mode-pct').style.display=amountMode==='pct'?'block':'none';
   document.getElementById('mode-btc').style.display=amountMode==='btc'?'block':'none';
   document.getElementById('mode-usd').style.display=amountMode==='usd'?'block':'none';
   updateAmountDisplay();
 }));
-
 document.getElementById('pct-slider').addEventListener('input',function(){
-  document.getElementById('pct-val-disp').textContent=this.value+'%';
-  updateAmountDisplay();
+  document.getElementById('pct-val-disp').textContent=this.value+'%';updateAmountDisplay();
 });
-
 document.querySelectorAll('.qbtn').forEach(b=>b.addEventListener('click',function(){
   const pct=parseInt(this.dataset.pct);
-  if(pct===100){
-    // All in buy
-    amountMode='pct';
-    document.getElementById('pct-slider').value=100;
-    document.getElementById('pct-val-disp').textContent='100%';
-    updateAmountDisplay();
-    document.getElementById('bbuy').click();
-  } else if(pct===-100){
-    // All out sell
-    amountMode='pct';
-    document.getElementById('pct-slider').value=100;
-    document.getElementById('pct-val-disp').textContent='100%';
-    updateAmountDisplay();
-    document.getElementById('bsell').click();
-  } else {
-    document.getElementById('pct-slider').value=Math.abs(pct);
-    document.getElementById('pct-val-disp').textContent=Math.abs(pct)+'%';
-    updateAmountDisplay();
-  }
+  if(pct===100){document.getElementById('pct-slider').value=100;document.getElementById('pct-val-disp').textContent='100%';updateAmountDisplay();document.getElementById('bbuy').click();}
+  else if(pct===-100){document.getElementById('pct-slider').value=100;document.getElementById('pct-val-disp').textContent='100%';updateAmountDisplay();document.getElementById('bsell').click();}
+  else{document.getElementById('pct-slider').value=Math.abs(pct);document.getElementById('pct-val-disp').textContent=Math.abs(pct)+'%';updateAmountDisplay();}
 }));
-
 document.querySelectorAll('.dca-step-btn').forEach(b=>b.addEventListener('click',function(){
   dcaSteps=parseInt(this.dataset.steps);
-  document.querySelectorAll('.dca-step-btn').forEach(x=>x.classList.remove('act'));
-  this.classList.add('act');
+  document.querySelectorAll('.dca-step-btn').forEach(x=>x.classList.remove('act'));this.classList.add('act');
   renderDcaPreview();
 }));
-
 document.getElementById('btc-input').addEventListener('input',updateAmountDisplay);
 document.getElementById('usd-input').addEventListener('input',updateAmountDisplay);
 
@@ -924,30 +921,30 @@ function updatePort(){
   document.getElementById('p-btc').textContent=fmtB(btc);
   document.getElementById('p-bval').textContent=fmt(bv);
   document.getElementById('p-tot').textContent=fmt(tot);
-  const pe=document.getElementById('p-pnl');
-  const sg=pnl>=0?'+':'';
+  const pe=document.getElementById('p-pnl'),sg=pnl>=0?'+':'';
   pe.textContent=sg+fmt(pnl)+' ('+sg+pp.toFixed(2)+'%)';
   pe.style.color=pnl>=0?'#4ade80':'#f87171';
   document.getElementById('p-avg').textContent=avgBuy>0?fmt(avgBuy):'—';
 }
 
 // ═══════════════════════════════════════════════════════
-// LOG
+// LOG — no max-height, hugs content
 // ═══════════════════════════════════════════════════════
 function addLog(msg){
   const log=document.getElementById('tlog');
   const d=new Date();
-  const t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>x.toString().padStart(2,'0')).join(':');
-  const item=document.createElement('div');item.className='li';item.textContent=t+' — '+msg;
-  if(log.firstChild&&log.firstChild.style&&log.firstChild.style.fontStyle==='italic')log.innerHTML='';
+  const tm=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>x.toString().padStart(2,'0')).join(':');
+  // Remove placeholder
+  const placeholder=log.querySelector('[data-i18n="noTrades"]');if(placeholder)placeholder.remove();
+  const item=document.createElement('div');item.className='li';item.textContent=tm+' — '+msg;
   log.insertBefore(item,log.firstChild);
 }
 
 // ═══════════════════════════════════════════════════════
-// EVENTS RENDER
+// EVENTS
 // ═══════════════════════════════════════════════════════
 let currentCat='now';
-const badgeLbl={live:'LIVE · 18 mars',fut:'Futur',ext:'Historique'};
+const badgeLbl=()=>({live:'LIVE · Mar 18',fut:'Future',ext:'Historical'});
 const badgeCls={live:'badge-live',fut:'badge-fut',ext:'badge-ext'};
 
 function renderSuggested(cat){
@@ -955,84 +952,77 @@ function renderSuggested(cat){
   const s=SUGGESTED[cat];
   if(!s){banner.style.display='none';return;}
   banner.style.display='flex';
-  banner.innerHTML=`
-    <div class="suggested-icon">💡</div>
-    <div class="suggested-body">
-      <div class="suggested-label">Scénario suggéré aujourd'hui</div>
-      <div class="suggested-title">Bull: ${s.bull.n} <span style="color:#4ade80;">${s.bull.impact}</span> &nbsp;|&nbsp; Bear: ${s.bear.n} <span style="color:#f87171;">${s.bear.impact}</span></div>
-      <div class="suggested-desc">${s.bull.desc}</div>
-    </div>`;
+  banner.innerHTML=`<div class="suggested-icon">💡</div><div class="suggested-body"><div class="suggested-label">${t('suggestedLabel')}</div><div class="suggested-title">Bull: ${s.bull.n} <span style="color:#4ade80;">${s.bull.impact}</span> &nbsp;|&nbsp; Bear: ${s.bear.n} <span style="color:#f87171;">${s.bear.impact}</span></div><div class="suggested-desc">${s.bull.desc}</div></div>`;
 }
-
 function renderEvents(cat){
   currentCat=cat;
-  document.querySelectorAll('.ctab').forEach(b=>{
-    b.className='ctab';
-    if(b.dataset.cat===cat)b.classList.add('act-'+cat);
-  });
+  document.querySelectorAll('.ctab').forEach(b=>{b.className='ctab';if(b.dataset.cat===cat)b.classList.add('act-'+cat);});
   ['col-bull','col-bear'].forEach(id=>document.getElementById(id).innerHTML='');
   EVTS[cat].bull.forEach(e=>appendEvt('col-bull',e,true));
   EVTS[cat].bear.forEach(e=>appendEvt('col-bear',e,false));
   renderSuggested(cat);
 }
-
-// Pending event for modal
 let pendingEvent=null;
-
 function appendEvt(col,e,bull){
   const c=document.getElementById(col);
   const b=document.createElement('button');
   b.className='evt '+(bull?'evt-bull':'evt-bear');
   const sg=e.s>0?'+':'';
-  b.innerHTML=`<div class="evt-head"><span class="evt-name ${bull?'evt-name-up':'evt-name-dn'}">${e.n}</span><span class="evt-badge ${badgeCls[e.badge||'ext']}">${badgeLbl[e.badge||'ext']}</span></div><div class="evt-desc">${e.desc}</div><div class="evt-foot"><span class="evt-impact ${bull?'evt-imp-up':'evt-imp-dn'}">${sg}${e.s}% impact</span><span class="evt-src">${e.src}</span></div>`;
-  b.addEventListener('click',()=>openEventModal(e,bull));
+  const bl=badgeLbl();
+  b.innerHTML=`<div class="evt-head"><span class="evt-name ${bull?'evt-name-up':'evt-name-dn'}">${e.n}</span><span class="evt-badge ${badgeCls[e.badge||'ext']}">${bl[e.badge||'ext']}</span></div><div class="evt-desc">${e.desc}</div><div class="evt-foot"><span class="evt-impact ${bull?'evt-imp-up':'evt-imp-dn'}">${sg}${e.s}%</span><span class="evt-src">${e.src}</span></div>`;
+  b.addEventListener('click',()=>handleEventClick(e,bull));
   c.appendChild(b);
 }
-
-function openEventModal(e,bull){
+function handleEventClick(e,bull){
+  // If user has a remembered preference, apply it directly without showing modal
+  if(rememberedSimMode!==null){
+    applyEvent(e,bull,rememberedSimMode);
+    return;
+  }
   pendingEvent={e,bull};
   document.getElementById('modal-evt-name').textContent=e.n;
-  document.getElementById('modal-evt-desc').textContent=e.desc+' Impact estimé: '+(e.s>0?'+':'')+e.s+'%';
+  document.getElementById('modal-evt-desc').textContent=e.desc+' Impact: '+(e.s>0?'+':'')+e.s+'%';
+  document.getElementById('modal-remember-chk').checked=false;
+  // Show remember checkbox only if sim banner is hidden (i.e. we just came back from live)
+  document.getElementById('modal-remember-wrap').style.display='flex';
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
-
 document.getElementById('modal-diverge').addEventListener('click',()=>{
   if(!pendingEvent)return;
+  const remember=document.getElementById('modal-remember-chk').checked;
+  if(remember)rememberedSimMode='free';
   applyEvent(pendingEvent.e,pendingEvent.bull,'free');
   closeModal();
 });
 document.getElementById('modal-return').addEventListener('click',()=>{
   if(!pendingEvent)return;
+  const remember=document.getElementById('modal-remember-chk').checked;
+  if(remember)rememberedSimMode='return';
   applyEvent(pendingEvent.e,pendingEvent.bull,'return');
   closeModal();
 });
 document.getElementById('modal-cancel').addEventListener('click',closeModal);
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
-
-function closeModal(){
-  document.getElementById('modal-overlay').classList.add('hidden');
-  pendingEvent=null;
-}
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');pendingEvent=null;}
 
 function applyEvent(e,bull,mode){
   shock+=e.s;
   priceMode=mode==='free'?'sim_free':'sim_return';
-  if(mode==='return'){
-    simReturnTimer=66; // ~60s at 900ms tick
-    simReturnTarget=livePrice||price;
-  }
+  if(mode==='return')simReturnTimer=66;
   const banner=document.getElementById('sim-banner');
   banner.classList.remove('hidden');
   document.getElementById('sim-banner-text').textContent=
-    (mode==='free'?'🚀 Simulation libre':'🔄 Simulation + retour live')+' — '+e.n+' ('+(e.s>0?'+':'')+e.s+'%)';
+    (mode==='free'?t('simFree'):t('simReturn'))+' — '+e.n+' ('+(e.s>0?'+':'')+e.s+'%)';
   const sg=e.s>0?'+':'';
-  addLog((bull?'🟢 BULL':'🔴 BEAR')+' ['+(mode==='free'?'libre':'retour')+'] — '+e.n+' ('+sg+e.s+'%)');
+  addLog((bull?'🟢 BULL':'🔴 BEAR')+' ['+(mode==='free'?'free':'return')+'] — '+e.n+' ('+sg+e.s+'%)');
 }
 
+// SECONDARY button — back to live — resets remembered choice
 document.getElementById('sim-back-btn').addEventListener('click',()=>{
   priceMode='live';shock=0;pendingDcaOrders=[];
+  rememberedSimMode=null; // reset so modal shows again on next event
   document.getElementById('sim-banner').classList.add('hidden');
-  addLog('↩ Retour au prix live');
+  addLog(t('backLiveLog'));
 });
 
 document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>renderEvents(b.dataset.cat)));
@@ -1041,17 +1031,17 @@ document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>ren
 // VOL + PAUSE
 // ═══════════════════════════════════════════════════════
 document.querySelectorAll('.vb').forEach(b=>b.addEventListener('click',function(){
-  document.querySelectorAll('.vb').forEach(x=>x.classList.remove('act'));
-  this.classList.add('act');volMode=this.dataset.v;
+  document.querySelectorAll('.vb').forEach(x=>x.classList.remove('act'));this.classList.add('act');volMode=this.dataset.v;
 }));
 document.getElementById('pbtn').addEventListener('click',function(){
-  paused=!paused;this.textContent=paused?'▶ Reprendre':'⏸ Pause';
+  paused=!paused;this.textContent=paused?t('resume'):t('pause');
 });
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-renderEvents('now'); // default tab = présent
+applyLang();
+renderEvents('now');
 connectWS();
 setInterval(tick,900);
 updatePort();
