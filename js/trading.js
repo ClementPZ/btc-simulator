@@ -209,9 +209,10 @@ document.querySelectorAll('.dca-step-btn').forEach(b => b.addEventListener('clic
 document.getElementById('btc-input').addEventListener('input', updateAmountDisplay);
 document.getElementById('usd-input').addEventListener('input', updateAmountDisplay);
 
-document.getElementById('dca-use-range-chk').addEventListener('change', function () {
-  dcaUseRange = this.checked;
+document.getElementById('dca-range-toggle').addEventListener('click', function () {
+  dcaUseRange = !dcaUseRange;
   document.getElementById('dca-range-inputs').style.display = dcaUseRange ? 'grid' : 'none';
+  this.classList.toggle('act', dcaUseRange);
   renderDcaPreview();
 });
 

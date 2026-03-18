@@ -107,12 +107,9 @@
             <button class="dca-step-btn" data-steps="5">5×</button>
             <button class="dca-step-btn" data-steps="7">7×</button>
             <button class="dca-step-btn" data-steps="10">10×</button>
+            <button class="dca-step-btn" id="dca-range-toggle" data-i18n="dcaUseRange">Price range</button>
           </div>
         </div>
-        <label class="dca-use-range">
-          <input type="checkbox" id="dca-use-range-chk">
-          <span data-i18n="dcaUseRange">Custom price range</span>
-        </label>
         <div class="dca-range-row" id="dca-range-inputs" style="display:none;">
           <div class="dca-range-box">
             <span class="dca-range-label" data-i18n="dcaFrom">From ($)</span>
@@ -161,6 +158,16 @@
     <button class="tft" data-tf="1D">1D</button>
     <!-- Separator -->
     <span class="tf-sep">·</span>
+    <!-- Range views -->
+    <button class="tft tft-hist" data-tf="3D">3D</button>
+    <button class="tft tft-hist" data-tf="1W">1W</button>
+    <button class="tft tft-hist" data-tf="1M">1M</button>
+    <button class="tft tft-hist" data-tf="3M">3M</button>
+    <button class="tft tft-hist" data-tf="6M">6M</button>
+    <button class="tft tft-hist" data-tf="9M">9M</button>
+    <button class="tft tft-hist" data-tf="1Y">1Y</button>
+    <!-- Separator -->
+    <span class="tf-sep">·</span>
     <!-- Historical years -->
     <button class="tft tft-hist" data-tf="2020">2020</button>
     <button class="tft tft-hist" data-tf="2021">2021</button>
@@ -197,7 +204,9 @@
       <button class="ctab" data-cat="future" data-i18n="tabFut">Future</button>
     </div>
   </div>
-  <div class="suggested-banner" id="suggested-banner" style="display:none;"></div>
+  <!-- Most probable — section épinglée -->
+  <div class="most-probable" id="most-probable"></div>
+  <!-- All events -->
   <div class="split-cols">
     <div>
       <div class="col-header"><div class="col-icon col-icon-up"></div><span class="col-label col-label-up" data-i18n="bullish">Bullish Scenarios</span></div>

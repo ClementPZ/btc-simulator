@@ -4,6 +4,9 @@
 // ═══════════════════════════════════════════════════════
 
 // ── TF config ──
+// hist:false = live candle buffers
+// hist:true  = aggregate from HIST monthly data
+// range TFs (3D/1W/1M/3M/6M/9M/1Y) derive from HIST or live depending on available data
 const TF_CONFIG = {
   '1s':  { ms: 1000,         label: '1s',  hist: false },
   '1m':  { ms: 60000,        label: '1m',  hist: false },
@@ -12,13 +15,22 @@ const TF_CONFIG = {
   '1h':  { ms: 3600000,      label: '1h',  hist: false },
   '4h':  { ms: 14400000,     label: '4h',  hist: false },
   '1D':  { ms: 86400000,     label: '1D',  hist: false },
-  '2020': { hist: true },
-  '2021': { hist: true },
-  '2022': { hist: true },
-  '2023': { hist: true },
-  '2024': { hist: true },
-  '2025': { hist: true },
-  '2026': { hist: true },
+  // Range views — slice from all HIST data
+  '3D':  { range: 3,   unit: 'day',   hist: true },
+  '1W':  { range: 7,   unit: 'day',   hist: true },
+  '1M':  { range: 1,   unit: 'month', hist: true },
+  '3M':  { range: 3,   unit: 'month', hist: true },
+  '6M':  { range: 6,   unit: 'month', hist: true },
+  '9M':  { range: 9,   unit: 'month', hist: true },
+  '1Y':  { range: 12,  unit: 'month', hist: true },
+  // Full year views
+  '2020': { year: true, hist: true },
+  '2021': { year: true, hist: true },
+  '2022': { year: true, hist: true },
+  '2023': { year: true, hist: true },
+  '2024': { year: true, hist: true },
+  '2025': { year: true, hist: true },
+  '2026': { year: true, hist: true },
 };
 
 // Current state
@@ -144,29 +156,65 @@ function renderLiveUpdate(currentCandle, closedCandles) {
   tvChart.timeScale().scrollToRealTime();
 }
 
-// ── Historical OHLC from monthly data ──
+// ── Build flat OHLC list from ALL HIST years (monthly candles) ──
+function buildAllHistOHLC() {
+  const result = [];
+  const years = Object.keys(HIST).sort();
+  for (const yearKey of years) {
+    const h = HIST[yearKey];
+    if (!h) continue;
+    const data = h.d;
+    const year = parseInt(yearKey);
+    for (let i = 0; i < data.length; i++) {
+      const date = new Date(Date.UTC(year, i, 1));
+      const tSec = Math.floor(date.getTime() / 1000);
+      const open = i === 0 ? data[0] : data[i - 1];
+      const close = data[i];
+      const high = Math.max(open, close) * (1 + 0.04 + Math.random() * 0.04);
+      const low  = Math.min(open, close) * (1 - 0.04 - Math.random() * 0.04);
+      result.push({ time: tSec, open, high, low, close });
+    }
+  }
+  // Deduplicate by time
+  const map = new Map();
+  result.forEach(c => map.set(c.time, c));
+  return Array.from(map.values()).sort((a, b) => a.time - b.time);
+}
+
+// ── Historical OHLC from a single year ──
 function buildHistOHLC(yearKey) {
   const h = HIST[yearKey];
   if (!h) return [];
   const data = h.d;
   const year = parseInt(yearKey);
   const result = [];
-
   for (let i = 0; i < data.length; i++) {
-    const month = i; // 0-indexed
-    const date = new Date(Date.UTC(year, month, 1));
-    const nextDate = new Date(Date.UTC(year, month + 1, 1));
+    const date = new Date(Date.UTC(year, i, 1));
     const tSec = Math.floor(date.getTime() / 1000);
-
     const open = i === 0 ? data[0] : data[i - 1];
     const close = data[i];
-    // Synthesize H/L with ±8% range
     const high = Math.max(open, close) * (1 + 0.04 + Math.random() * 0.06);
-    const low = Math.min(open, close) * (1 - 0.04 - Math.random() * 0.06);
-
+    const low  = Math.min(open, close) * (1 - 0.04 - Math.random() * 0.06);
     result.push({ time: tSec, open, high, low, close });
   }
   return result;
+}
+
+// ── Slice last N months/days from all HIST data ──
+function buildRangeOHLC(range, unit) {
+  const all = buildAllHistOHLC();
+  if (all.length === 0) return [];
+  const nowMs = Date.now();
+  let cutoffMs;
+  if (unit === 'month') {
+    const d = new Date(nowMs);
+    d.setMonth(d.getMonth() - range);
+    cutoffMs = d.getTime();
+  } else {
+    cutoffMs = nowMs - range * 86400000;
+  }
+  const cutoffSec = Math.floor(cutoffMs / 1000);
+  return all.filter(c => c.time >= cutoffSec);
 }
 
 // ── switchTF ──
@@ -179,8 +227,14 @@ function switchTF(tf) {
   });
 
   if (TF_CONFIG[tf] && TF_CONFIG[tf].hist) {
-    // Historical year view
-    const ohlc = buildHistOHLC(tf);
+    let ohlc;
+    if (TF_CONFIG[tf].year) {
+      // Full year view
+      ohlc = buildHistOHLC(tf);
+    } else {
+      // Range view: 3D / 1W / 1M / 3M / 6M / 9M / 1Y
+      ohlc = buildRangeOHLC(TF_CONFIG[tf].range, TF_CONFIG[tf].unit);
+    }
     candleSeries.setData(ohlc);
     tvChart.timeScale().fitContent();
   } else {

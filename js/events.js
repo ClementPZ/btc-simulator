@@ -5,13 +5,27 @@
 const badgeLbl = () => ({ live: 'LIVE · Mar 18', fut: 'Future', ext: 'Historical' });
 const badgeCls = { live: 'badge-live', fut: 'badge-fut', ext: 'badge-ext' };
 
-function renderSuggested(cat) {
-  const banner = document.getElementById('suggested-banner');
+function renderMostProbable(cat) {
+  const el = document.getElementById('most-probable');
   const s = SUGGESTED[cat];
-  if (!s) { banner.style.display = 'none'; return; }
-  banner.style.display = 'flex';
-  banner.innerHTML = `<div class="suggested-icon">💡</div><div class="suggested-body"><div class="suggested-label">${t('suggestedLabel')}</div><div class="suggested-title">Bull: ${s.bull.n} <span style="color:#4ade80;">${s.bull.impact}</span> &nbsp;|&nbsp; Bear: ${s.bear.n} <span style="color:#f87171;">${s.bear.impact}</span></div><div class="suggested-desc">${s.bull.desc}</div></div>`;
+  if (!s) { el.classList.remove('visible'); return; }
+  el.classList.add('visible');
+  el.innerHTML = `
+    <button class="mp-card mp-card-bull" onclick="handleEventClick({n:${JSON.stringify(s.bull.n)},desc:${JSON.stringify(s.bull.desc)},s:${parseInt(s.bull.impact)}}, true)">
+      <div class="mp-tag">★ Most probable — Bullish</div>
+      <div class="mp-name">${s.bull.n}</div>
+      <div class="mp-desc">${s.bull.desc}</div>
+      <div class="mp-foot"><span class="mp-impact">${s.bull.impact}</span></div>
+    </button>
+    <button class="mp-card mp-card-bear" onclick="handleEventClick({n:${JSON.stringify(s.bear.n)},desc:${JSON.stringify(s.bear.desc)},s:${parseInt(s.bear.impact)}}, false)">
+      <div class="mp-tag">★ Most probable — Bearish</div>
+      <div class="mp-name">${s.bear.n}</div>
+      <div class="mp-desc">${s.bear.desc}</div>
+      <div class="mp-foot"><span class="mp-impact">${s.bear.impact}</span></div>
+    </button>
+  `;
 }
+function renderSuggested(cat) { renderMostProbable(cat); }
 
 function renderEvents(cat) {
   currentCat = cat;
@@ -44,7 +58,7 @@ function handleEventClick(e, bull) {
   pendingEvent = { e, bull };
   document.getElementById('modal-evt-name').textContent = e.n;
   document.getElementById('modal-evt-desc').textContent = e.desc + ' Impact: ' + (e.s > 0 ? '+' : '') + e.s + '%';
-  document.getElementById('modal-remember-chk').checked = false;
+  document.getElementById('modal-remember-chk').checked = true;
   document.getElementById('modal-remember-wrap').style.display = 'flex';
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
