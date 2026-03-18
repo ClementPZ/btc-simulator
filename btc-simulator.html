@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Simulator — 18 mars 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f0f10;--surface:#18181b;--surface2:#1f1f23;--border:#2a2a30;--border2:#3a3a44;
+  --text:#f4f4f5;--text2:#a1a1aa;--text3:#71717a;
+  --orange:#F7931A;--green:#16a34a;--red:#991b1b;
+  --green-bg:rgba(22,163,74,0.09);--red-bg:rgba(153,27,27,0.09);
+  --green-border:rgba(22,163,74,0.28);--red-border:rgba(153,27,27,0.28);
+  --green-text:#4ade80;--red-text:#f87171;
+  --violet:#7c3aed;--violet-dark:#5b21b6;
+  --blood:#7f1d1d;--blood-dark:#450a0a;
+  --radius:10px;--radius-sm:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;padding:0;}
+.page{max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+/* ── HEADER ── */
+.site-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:0.5px solid var(--border);}
+.btc-logo{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;}
+.site-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:.02em;}
+.site-sub{font-size:11px;color:var(--text3);}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(247,147,26,.12);border:0.5px solid rgba(247,147,26,.3);border-radius:99px;padding:3px 10px;font-size:11px;color:var(--orange);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.fomc-pill{background:rgba(124,58,237,.15);border:0.5px solid rgba(124,58,237,.35);border-radius:99px;padding:3px 10px;font-size:11px;color:#a78bfa;}
+
+/* ── PRICE STRIP ── */
+.price-strip{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.big-price{font-size:38px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);letter-spacing:-1.5px;}
+.price-chg{font-size:15px;font-weight:500;}
+.up{color:var(--green-text);} .dn{color:var(--red-text);}
+.ticker-metas{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap;}
+.tmeta{font-size:11px;color:var(--text3);display:flex;flex-direction:column;gap:1px;text-align:right;}
+.tmeta strong{font-size:12px;color:var(--text);font-weight:500;}
+
+/* ── TRADE WIDGET ── */
+.trade-widget{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 220px;gap:16px;}
+@media(max-width:640px){.trade-widget{grid-template-columns:1fr;}}
+.tw-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;}
+.liquidity-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.liq-box{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;border:0.5px solid var(--border);}
+.liq-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
+.liq-val{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);}
+.liq-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.qty-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.qty-label{font-size:11px;color:var(--text2);min-width:28px;}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--orange);cursor:pointer;}
+.qty-val{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);min-width:72px;text-align:right;}
+.trade-val-row{display:flex;justify-content:space-between;align-items:center;}
+.trade-est{font-size:11px;color:var(--text3);}
+.trade-est strong{color:var(--text);font-size:14px;}
+.tw-right{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;}
+.btn-buy{padding:13px 0;width:100%;border:none;border-radius:20px;background:var(--violet);color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s,transform .1s;}
+.btn-buy:active{transform:scale(.97);}
+.btn-buy:hover{background:var(--violet-dark);}
+.btn-sell{padding:13px 0;width:100%;border:none;border-radius:20px;background:var(--blood);color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s,transform .1s;}
+.btn-sell:active{transform:scale(.97);}
+.btn-sell:hover{background:var(--blood-dark);}
+.btn-hint{font-size:9px;color:var(--text3);text-align:center;}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:14px;}
+@media(max-width:640px){.metrics{grid-template-columns:repeat(3,1fr);}}
+.met{background:var(--surface);border-radius:var(--radius-sm);padding:9px 11px;border:0.5px solid var(--border);}
+.ml{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
+.mv{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);}
+
+/* ── CHART ── */
+.chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
+.tf-row{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.tft{padding:3px 10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
+.tft.act{background:var(--surface2);color:var(--text);border-color:var(--border2);}
+.chart-wrap{position:relative;width:100%;height:200px;}
+
+/* ── UPDATE BAR ── */
+.update-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:7px 12px;background:var(--surface);border-radius:var(--radius-sm);border:0.5px solid var(--border);flex-wrap:wrap;gap:8px;}
+.update-left{font-size:10px;color:var(--text3);}
+.update-left strong{color:var(--orange);}
+.vol-row{display:flex;gap:5px;align-items:center;}
+.vb{padding:2px 9px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
+.vb.act{background:var(--surface2);color:var(--text);border-color:var(--border2);}
+.pbtn{padding:2px 10px;font-size:10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;}
+
+/* ── EVENTS ── */
+.evt-section{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
+.evt-section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.sec-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);}
+.cat-tabs{display:flex;gap:5px;}
+.ctab{padding:4px 12px;border-radius:99px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;}
+.ctab.act-past{background:rgba(22,163,74,.1);color:#4ade80;border-color:rgba(22,163,74,.3);}
+.ctab.act-now{background:rgba(247,147,26,.1);color:var(--orange);border-color:rgba(247,147,26,.3);}
+.ctab.act-fut{background:rgba(124,58,237,.1);color:#a78bfa;border-color:rgba(124,58,237,.3);}
+.split-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:640px){.split-cols{grid-template-columns:1fr;}}
+.col-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.col-icon{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.col-icon-up{background:var(--green-text);}
+.col-icon-dn{background:var(--red-text);}
+.col-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;}
+.col-label-up{color:var(--green-text);}
+.col-label-dn{color:var(--red-text);}
+.col-evts{display:flex;flex-direction:column;gap:8px;}
+.evt{border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;text-align:left;width:100%;border:none;font-family:inherit;transition:filter .12s;}
+.evt-bull{background:var(--green-bg);border:0.5px solid var(--green-border);}
+.evt-bull:hover{filter:brightness(1.15);}
+.evt-bear{background:var(--red-bg);border:0.5px solid var(--red-border);}
+.evt-bear:hover{filter:brightness(1.15);}
+.evt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:3px;}
+.evt-name{font-size:11px;font-weight:600;line-height:1.3;}
+.evt-name-up{color:var(--green-text);}
+.evt-name-dn{color:var(--red-text);}
+.evt-badge{font-size:9px;padding:1px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+.badge-live{background:rgba(247,147,26,.15);color:var(--orange);border:0.5px solid rgba(247,147,26,.3);}
+.badge-fut{background:rgba(124,58,237,.12);color:#a78bfa;border:0.5px solid rgba(124,58,237,.25);}
+.badge-ext{background:rgba(113,113,122,.1);color:var(--text3);border:0.5px solid var(--border2);}
+.evt-desc{font-size:10px;color:var(--text2);line-height:1.45;margin-bottom:5px;}
+.evt-foot{display:flex;justify-content:space-between;align-items:center;}
+.evt-impact{font-size:10px;font-weight:700;}
+.evt-imp-up{color:var(--green-text);}
+.evt-imp-dn{color:var(--red-text);}
+.evt-src{font-size:9px;color:var(--text3);font-style:italic;}
+
+/* ── PORTFOLIO ── */
+.port{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px;}
+@media(max-width:500px){.pgrid{grid-template-columns:1fr 1fr;}}
+.pi{background:var(--surface2);border-radius:var(--radius-sm);padding:9px 11px;border:0.5px solid var(--border);}
+.pil{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
+.piv{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);}
+
+/* ── LOG ── */
+.logbox{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;}
+.logscroll{max-height:80px;overflow-y:auto;margin-top:8px;}
+.li{font-size:10px;color:var(--text3);padding:3px 0;border-bottom:0.5px solid var(--border);line-height:1.4;}
+.li:last-child{border-bottom:none;}
+
+/* ── FOOTER ── */
+.footer{margin-top:24px;padding-top:16px;border-top:0.5px solid var(--border);text-align:center;font-size:10px;color:var(--text3);}
+.footer a{color:var(--text3);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="btc-logo">₿</div>
+  <div>
+    <div class="site-title">Bitcoin Simulator</div>
+    <div class="site-sub">Mercredi 18 mars 2026 · Simulation pédagogique</div>
+  </div>
+  <div class="header-right">
+    <div class="live-pill"><div class="live-dot"></div>Prix simulé</div>
+    <div class="fomc-pill">FOMC · 14h ET aujourd'hui</div>
+  </div>
+</div>
+
+<!-- PRICE STRIP -->
+<div class="price-strip">
+  <span class="big-price" id="pdisplay">$74,382</span>
+  <span class="price-chg up" id="cdisplay">+375 (+0.51%)</span>
+  <div class="ticker-metas">
+    <div class="tmeta"><span>Market Cap</span><strong id="m-cap">$1.46T</strong></div>
+    <div class="tmeta"><span>Nasdaq (clôt. 17/3)</span><strong class="up">22,479 +0.47%</strong></div>
+    <div class="tmeta"><span>WTI Pétrole</span><strong class="dn">$97.00 +3.7%</strong></div>
+    <div class="tmeta"><span>Taux Fed</span><strong style="color:var(--orange);">3.50–3.75%</strong></div>
+  </div>
+</div>
+
+<!-- TRADE WIDGET -->
+<div class="trade-widget">
+  <div>
+    <div class="tw-label">Liquidités & Quantité</div>
+    <div class="liquidity-row">
+      <div class="liq-box">
+        <div class="liq-label">Cash disponible</div>
+        <div class="liq-val" id="liq-cash">$100,000</div>
+        <div class="liq-sub">USD · prêt à investir</div>
+      </div>
+      <div class="liq-box">
+        <div class="liq-label">BTC détenu</div>
+        <div class="liq-val" id="liq-btc">0.0000</div>
+        <div class="liq-sub" id="liq-btcval">≈ $0</div>
+      </div>
+    </div>
+    <div class="qty-row">
+      <span class="qty-label">Qty</span>
+      <input type="range" id="qty" min="0.001" max="1" step="0.001" value="0.1">
+      <span class="qty-val" id="qdisp">0.100 BTC</span>
+    </div>
+    <div class="trade-val-row">
+      <span class="trade-est">Valeur ≈ <strong id="tval">$7,438</strong></span>
+      <span class="trade-est">slippage ~0.08%</span>
+    </div>
+  </div>
+  <div class="tw-right">
+    <div class="tw-label" style="text-align:center;">Exécuter</div>
+    <button class="btn-buy" id="bbuy">▲ &nbsp;ACHETER BTC</button>
+    <button class="btn-sell" id="bsell">▼ &nbsp;VENDRE BTC</button>
+    <div class="btn-hint">Prix marché · simulation pédagogique</div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="met"><div class="ml">Ouverture</div><div class="mv">$74,007</div></div>
+  <div class="met"><div class="ml">Haut 24h</div><div class="mv" id="m-high">—</div></div>
+  <div class="met"><div class="ml">Bas 24h</div><div class="mv" id="m-low">—</div></div>
+  <div class="met"><div class="ml">FedWatch Hold</div><div class="mv" style="color:var(--orange);">98.9%</div></div>
+  <div class="met"><div class="ml">Dominance BTC</div><div class="mv">59.1%</div></div>
+</div>
+
+<!-- CHART -->
+<div class="chart-card">
+  <div class="tf-row">
+    <button class="tft act" data-tf="live">Live</button>
+    <button class="tft" data-tf="2020">2020</button>
+    <button class="tft" data-tf="2021">2021</button>
+    <button class="tft" data-tf="2022">2022</button>
+    <button class="tft" data-tf="2023">2023</button>
+    <button class="tft" data-tf="2024">2024</button>
+    <button class="tft" data-tf="2025">2025</button>
+    <button class="tft" data-tf="2026">2026</button>
+  </div>
+  <div class="chart-wrap"><canvas id="btcChart"></canvas></div>
+</div>
+
+<!-- UPDATE BAR -->
+<div class="update-bar">
+  <span class="update-left">Simulation basée sur données réelles · Sources: <strong>Yahoo Finance · CoinDesk · CNBC · Kiplinger · CME FedWatch</strong></span>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:10px;color:var(--text3);">Volatilité</span>
+    <div class="vol-row">
+      <button class="vb" data-v="low">Calme</button>
+      <button class="vb act" data-v="med">Normale</button>
+      <button class="vb" data-v="high">Turbo</button>
+    </div>
+    <button class="pbtn" id="pbtn">⏸ Pause</button>
+  </div>
+</div>
+
+<!-- EVENTS -->
+<div class="evt-section">
+  <div class="evt-section-header">
+    <div class="sec-title">Scénarios & Événements — Impact Bitcoin</div>
+    <div class="cat-tabs">
+      <button class="ctab act-past" data-cat="past">Passé</button>
+      <button class="ctab" data-cat="now">Aujourd'hui 18/03</button>
+      <button class="ctab" data-cat="future">Futur</button>
+    </div>
+  </div>
+  <div class="split-cols">
+    <div>
+      <div class="col-header"><div class="col-icon col-icon-up"></div><span class="col-label col-label-up">Scénarios Haussiers</span></div>
+      <div class="col-evts" id="col-bull"></div>
+    </div>
+    <div>
+      <div class="col-header"><div class="col-icon col-icon-dn"></div><span class="col-label col-label-dn">Scénarios Baissiers</span></div>
+      <div class="col-evts" id="col-bear"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIO -->
+<div class="port">
+  <div class="sec-title">Portefeuille</div>
+  <div class="pgrid">
+    <div class="pi"><div class="pil">Cash USD</div><div class="piv" id="p-cash">$100,000</div></div>
+    <div class="pi"><div class="pil">BTC détenu</div><div class="piv" id="p-btc">0.0000 BTC</div></div>
+    <div class="pi"><div class="pil">Valeur BTC</div><div class="piv" id="p-bval">$0</div></div>
+    <div class="pi"><div class="pil">Total</div><div class="piv" id="p-tot">$100,000</div></div>
+    <div class="pi"><div class="pil">P&L</div><div class="piv" id="p-pnl">$0 (0.00%)</div></div>
+    <div class="pi"><div class="pil">Prix moy. achat</div><div class="piv" id="p-avg">—</div></div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="logbox">
+  <div class="sec-title">Journal des trades</div>
+  <div class="logscroll" id="tlog"><div class="li" style="font-style:italic;color:var(--text3);">Aucun trade pour l'instant.</div></div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Bitcoin Simulator · Simulation pédagogique uniquement · Pas un conseil financier · Données synthétiques inspirées de sources réelles<br>
+  Sources: <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://kiplinger.com" target="_blank">Kiplinger</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
+</div>
+
+</div>
+
+<script>
+// ── DATA ──
+const SPOT=74382,OPEN=74007,SUPPLY=19700000,INIT=100000;
+let price=SPOT,hi=SPOT,lo=SPOT,paused=false,volMode='med',shock=0;
+let cash=INIT,btc=0,totalCost=0,avgBuy=0;
+const vols={low:.0004,med:.0011,high:.0026};
+
+const HIST={
+  '2020':{d:[7200,8500,6500,7100,9000,10000,11000,11800,10500,13000,15000,19000,29000],c:'#3b82f6'},
+  '2021':{d:[29000,33000,38000,50000,58000,64000,35000,40000,47000,43000,61000,68000,46000],c:'#22c55e'},
+  '2022':{d:[46000,43000,39000,40000,38000,20000,19000,23000,20000,19000,16000,15500,16500],c:'#ef4444'},
+  '2023':{d:[16500,21000,22500,28000,27000,30000,31000,29000,26000,27000,34000,37000,44500],c:'#f59e0b'},
+  '2024':{d:[44500,50000,62000,73000,65000,68000,60000,56000,64000,67000,68000,99000,106000],c:'#8b5cf6'},
+  '2025':{d:[106000,98000,86000,88000,95000,110000,122000,126000,115000,105000,90000,75000,73000],c:'#06b6d4'},
+  '2026':{d:[73000,68000,60000,65000,70000,72000,74000],c:'#f59e0b'},
+};
+
+const EVTS={
+  past:{
+    bull:[
+      {n:'ETF Spot BlackRock/Fidelity',d:'Jan 2024',s:+25,desc:'SEC approuve IBIT+FBTC. $10Md en 2 mois. Changement structurel permanent du marché crypto.',src:'SEC / BlackRock / CoinDesk',badge:'ext'},
+      {n:'Trump — Strategic Bitcoin Reserve',d:'Mars 2025',s:+18,desc:'Décret exécutif créant la SBR US. Le gouvernement fédéral devient hodler officiel.',src:'WhiteHouse.gov / CNBC',badge:'ext'},
+      {n:'ATH $126,296',d:'6 oct 2025',s:+10,desc:'Record absolu. ETF inflows + adoption institutionnelle + cycle post-halving. Peak du cycle.',src:'CoinDesk / Fortune',badge:'ext'},
+      {n:'SVB collapse → refuge BTC',d:'Mars 2023',s:+12,desc:'Faillite Silicon Valley Bank paradoxalement bullish. Fuite vers actifs alternatifs. BTC +30%.',src:'FDIC / Reuters',badge:'ext'},
+      {n:'Tesla + MicroStrategy BTC',d:'Fév 2021',s:+20,desc:'Tesla $1.5Md + MSTR >70k BTC. Adoption institutionnelle sans précédent.',src:'SEC filings / CoinTelegraph',badge:'ext'},
+      {n:'3e Halving',d:'Mai 2020',s:+8,desc:'12.5 → 6.25 BTC/bloc. Catalyseur du bull run vers $29k fin 2020.',src:'Bitcoin.org / Forbes',badge:'ext'},
+    ],
+    bear:[
+      {n:'FTX implosion',d:'Nov 2022',s:-25,desc:'$8Md de fonds clients disparus. BTC → $15,479. Bottom du cycle. Contagion totale.',src:'Financial Times / CoinDesk',badge:'ext'},
+      {n:'Terra/Luna effondrement',d:'Mai 2022',s:-40,desc:'$40Md en 72h. BTC -$16k. Celsius, Three Arrows Capital contaminés.',src:'Bloomberg / WSJ',badge:'ext'},
+      {n:'COVID crash',d:'Mars 2020',s:-35,desc:'BTC $10k → $4.9k en 48h. Panique mondiale généralisée.',src:'Bloomberg / CoinDesk',badge:'ext'},
+      {n:'Ban minage Chine',d:'Mai 2021',s:-30,desc:'Pékin interdit le minage. Hashrate -50%. BTC perd $30k en 3 semaines.',src:'Reuters / CNBC',badge:'ext'},
+      {n:'Bear market 2022',d:'2022',s:-20,desc:'Hausse taux Fed agressive. BTC corrélé TradFi. -65% sur l\'année entière.',src:'ARK Invest / Bloomberg',badge:'ext'},
+      {n:'Correction post-ATH -46%',d:'Q4 2025',s:-20,desc:'Prise de profit post-$126k. BTC → $67k fév 2026. Tension Iran + risk-off.',src:'Caleb & Brown / CoinDesk',badge:'ext'},
+    ]
+  },
+  now:{
+    bull:[
+      {n:'FOMC dovish — dot plot 2 cuts',d:'18 mars · 14h ET',s:+12,desc:'Powell signale Iran transitoire. Dot plot → 2 coupes 2026. BTC peut viser $80k. Prob. 25-30% selon MEXC/99BTC.',src:'MEXC / 99Bitcoins / Kiplinger',badge:'live'},
+      {n:'Nasdaq futures +0.51%',d:'18 mars matin',s:+4,desc:'Nasdaq fut. 25,180 (+0.51%). S&P +0.53%. Si ouverture positive → risk-on corrélé BTC.',src:'Yahoo Finance Markets',badge:'live'},
+      {n:'Strategy (MSTR) +$1.57Md BTC',d:'Semaine 16-20 mars',s:+7,desc:'MicroStrategy achète 22,337 BTC à $70,200/coin. Accumulation institutionnelle agressive continue.',src:'TheStreet / Yahoo Finance',badge:'live'},
+      {n:'Nasdaq × NYSE tokenisent actions',d:'15 mars 2026',s:+9,desc:'Nasdaq + ICE s\'allient à des exchanges crypto pour tokeniser les $126T du marché actions sur blockchain.',src:'CoinDesk Mar 2026',badge:'live'},
+      {n:'ETF inflows mars +$1.3Md',d:'Mars 2026 YTD',s:+8,desc:'1er mois positif depuis octobre sur ETFs spot BTC. $250M le 10 mars seul. Sentiment en amélioration.',src:'CoinDesk / Farside Investors',badge:'live'},
+      {n:'Crypto accès Fed Reserve',d:'5 mars 2026',s:+10,desc:'L\'industrie crypto accède au système de paiement Federal Reserve. Signal de légitimité majeur.',src:'CoinDesk / MetaMask',badge:'live'},
+    ],
+    bear:[
+      {n:'FOMC hawkish — 0 cut 2026',d:'18 mars · 14h ET',s:-10,desc:'Dot plot → 0 coupe, Powell caution sur inflation Iran. Sell-the-news. BTC a chuté après 7/8 FOMC en 2025.',src:'MEXC / Phemex / 99Bitcoins',badge:'live'},
+      {n:'Guerre Iran — WTI $97+',d:'18 mars · ACTUEL',s:-6,desc:'Brent $103.50 (+3.2%). Pression inflationniste. Fed bloquée. Risk-off potentiel sur actifs spéculatifs.',src:'Schwab / CoinDesk / TheStreet',badge:'live'},
+      {n:'Sell-the-news pattern FOMC',d:'18 mars · post 14h',s:-7,desc:'Pattern historique: BTC -5 à -8% dans 48h post-annonce. Même attendue = vente. 7/8 FOMC 2025.',src:'Phemex Research / MEXC Blog',badge:'live'},
+      {n:'Rejet $75k — canal cassé',d:'18 mars · technique',s:-8,desc:'BTC a tapé $75k et rejeté dans le canal. Même pattern que fin fév avant flush vers $64k. Support: $72k.',src:'Cryptonews / Yahoo Finance',badge:'live'},
+      {n:'Powell succession — incertitude',d:'Mai 2026',s:-5,desc:'Nomination Kevin Warsh (hawkish) bloquée par litige judiciaire. Chaque discours Powell amplifié.',src:'CNBC / Cointribune / Reuters',badge:'live'},
+      {n:'Tarifs Trump 15% — stagflation',d:'Mars 2026',s:-6,desc:'Tarifs globaux 15% + choc pétrolier = risque stagflationniste. Pire cas pour risk assets.',src:'MEXC / TheStreet / Kiplinger',badge:'live'},
+    ]
+  },
+  future:{
+    bull:[
+      {n:'Breakout $80k post-FOMC dovish',d:'T2 2026',s:+15,desc:'Si BTC casse $74k en volume après signal dovish: techniquement ouvert vers $80k puis $90-100k.',src:'Extrapolé CoinDesk / 99BTC',badge:'fut'},
+      {n:'1ère baisse taux Fed',d:'Juin–Oct 2026',s:+12,desc:'CME FedWatch pricait juin avant Iran. JPMorgan: 1 coupe 2026. Historiquement BTC rally 2 semaines avant.',src:'CME FedWatch / JPMorgan',badge:'fut'},
+      {n:'Loi SBR fédérale US',d:'2026',s:+20,desc:'19 projets SBR dans 8 États. Si Congrès: État américain = acheteur structurel massif. Demand inélastique.',src:'Caleb & Brown / Congress.gov',badge:'fut'},
+      {n:'Résolution conflit Iran',d:'T2–T3 2026',s:+10,desc:'Hormuz rouvre: pétrole baisse, inflation reflue, Fed coupe. Double bullish BTC potentiel +15-25%.',src:'Extrapolé Reuters / Schwab',badge:'fut'},
+      {n:'ATH > $150k bull case',d:'2026–2027',s:+25,desc:'Scénario ARK Invest: SBR + baisses taux + ETF inflows. Cycle pas terminé. Bull case $200k+.',src:'ARK Invest / Bitwise',badge:'fut'},
+      {n:'Coinbase × Bybit deal officiel',d:'T2 2026',s:+8,desc:'Partenariat évoqué en pre-market. Si officiel: consolidation exchanges, volume institutionnel en hausse.',src:'Extrapolé TheStreet Mar 2026',badge:'fut'},
+    ],
+    bear:[
+      {n:'Prolongation guerre Iran > 6 mois',d:'T2–T3 2026',s:-15,desc:'Inflation structurelle, Fed bloquée, récession US possible. BTC corrélé TradFi en risk-off prolongé.',src:'Extrapolé Schwab / Kiplinger',badge:'fut'},
+      {n:'Warsh Fed chair — hawkish pivot',d:'Mai 2026',s:-8,desc:'Kevin Warsh (plus hawkish) confirmé: re-pricing des taux 2026. Pression sur BTC et risk assets.',src:'Extrapolé CNBC / TheStreet',badge:'fut'},
+      {n:'Récession US — jobs data',d:'T2–T3 2026',s:-20,desc:'Chômage 4.4% + payrolls -92k fév. Si 3 mauvais mois: récession pricée. BTC sell-off généralisé.',src:'BLS / Fed Reserve / EBC Financial',badge:'fut'},
+      {n:'Quantum computing — ECDSA',d:'2026–2028',s:-15,desc:'IBM/Google avancées quantiques: risque théorique sur clés privées Bitcoin. Risque existentiel long terme.',src:'Christopher Wood CNBC / Nature',badge:'fut'},
+      {n:'Réglementation stablecoins stricte',d:'2026',s:-8,desc:'Si loi GENIUS Act crée friction sur USDT/USDC: liquidité crypto réduite, volumes en baisse.',src:'Extrapolé Congress.gov / Bloomberg',badge:'fut'},
+      {n:'5e Halving — impact marginal',d:'Avr 2028',s:-3,desc:'Reward 3.125 → 1.5625. Impact supply faible: >95% miné. Déçoit si marché espérait rally fort.',src:'Bitcoin.org / Spark Money',badge:'fut'},
+    ]
+  }
+};
+
+// ── EVENTS RENDER ──
+let currentCat='past';
+const badgeLbl={live:'LIVE · 18 mars',fut:'Futur',ext:'Historique'};
+const badgeCls={live:'badge-live',fut:'badge-fut',ext:'badge-ext'};
+
+function renderEvents(cat){
+  currentCat=cat;
+  document.querySelectorAll('.ctab').forEach(b=>{b.className='ctab';if(b.dataset.cat===cat)b.classList.add('act-'+cat);});
+  ['col-bull','col-bear'].forEach(id=>document.getElementById(id).innerHTML='');
+  EVTS[cat].bull.forEach(e=>appendEvt('col-bull',e,true));
+  EVTS[cat].bear.forEach(e=>appendEvt('col-bear',e,false));
+}
+function appendEvt(col,e,bull){
+  const c=document.getElementById(col);
+  const b=document.createElement('button');
+  b.className='evt '+(bull?'evt-bull':'evt-bear');
+  const sg=e.s>0?'+':'';
+  b.innerHTML=`<div class="evt-head"><span class="evt-name ${bull?'evt-name-up':'evt-name-dn'}">${e.n}</span><span class="evt-badge ${badgeCls[e.badge||'ext']}">${badgeLbl[e.badge||'ext']}</span></div><div class="evt-desc">${e.desc}</div><div class="evt-foot"><span class="evt-impact ${bull?'evt-imp-up':'evt-imp-dn'}">${sg}${e.s}% impact</span><span class="evt-src">${e.src}</span></div>`;
+  b.addEventListener('click',()=>{shock+=e.s;addLog((bull?'🟢 BULL':'🔴 BEAR')+' — '+e.n+' ('+sg+e.s+'%)');});
+  c.appendChild(b);
+}
+document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>renderEvents(b.dataset.cat)));
+
+// ── CHART ──
+let liveHist=[];
+for(let i=80;i>=0;i--)liveHist.push(+(SPOT+(Math.random()-.5)*3000).toFixed(0));
+let currentTF='live';
+const ctx=document.getElementById('btcChart').getContext('2d');
+const chart=new Chart(ctx,{
+  type:'line',
+  data:{labels:liveHist.map(()=>''),datasets:[{data:[...liveHist],borderColor:'#F7931A',backgroundColor:'rgba(247,147,26,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.3}]},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+Math.round(c.parsed.y).toLocaleString()}}},
+    scales:{x:{display:false},y:{ticks:{font:{size:9},color:'#71717a',callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.05)'}}}}
+});
+function switchTF(tf){
+  currentTF=tf;
+  document.querySelectorAll('.tft').forEach(t=>t.classList.toggle('act',t.dataset.tf===tf));
+  if(tf==='live'){
+    chart.data.datasets[0].borderColor='#F7931A';chart.data.datasets[0].backgroundColor='rgba(247,147,26,0.08)';
+    chart.data.datasets[0].data=[...liveHist];chart.data.labels=liveHist.map(()=>'');chart.options.scales.x.display=false;
+  } else {
+    const h=HIST[tf];chart.data.datasets[0].borderColor=h.c;chart.data.datasets[0].backgroundColor=h.c+'18';
+    chart.data.datasets[0].data=h.d;chart.data.labels=h.d.map((_,i)=>'M'+(i+1));chart.options.scales.x.display=true;
+    chart.options.scales.x.ticks={font:{size:9},color:'#71717a'};
+  }
+  chart.update();
+}
+document.querySelectorAll('.tft').forEach(t=>t.addEventListener('click',()=>switchTF(t.dataset.tf)));
+
+// ── TICK ──
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
+const fmtB=n=>n.toFixed(4)+' BTC';
+function tick(){
+  if(paused)return;
+  const v=vols[volMode];
+  let drift=(Math.random()-.499)*price*v;
+  if(shock!==0){drift+=price*(shock/100)*.18;shock*=.82;if(Math.abs(shock)<.05)shock=0;}
+  price=Math.max(20000,Math.min(220000,price+drift));
+  hi=Math.max(hi,price);lo=Math.min(lo,price);
+  liveHist.push(+price.toFixed(0));if(liveHist.length>81)liveHist.shift();
+  const chg=price-OPEN,pct=(chg/OPEN)*100;
+  document.getElementById('pdisplay').textContent=fmt(price);
+  const cd=document.getElementById('cdisplay');
+  const sg=chg>=0?'+':'';
+  cd.textContent=sg+Math.round(chg).toLocaleString()+' ('+sg+pct.toFixed(2)+'%)';
+  cd.className='price-chg '+(chg>=0?'up':'dn');
+  document.getElementById('m-high').textContent=fmt(hi);
+  document.getElementById('m-low').textContent=fmt(lo);
+  document.getElementById('m-cap').textContent='$'+(price*SUPPLY/1e12).toFixed(2)+'T';
+  const qty=parseFloat(document.getElementById('qty').value);
+  document.getElementById('tval').textContent=fmt(qty*price);
+  if(currentTF==='live'){chart.data.datasets[0].data=[...liveHist];chart.update('none');}
+  updatePort();
+}
+
+// ── PORTFOLIO ──
+function updatePort(){
+  const bv=btc*price,tot=cash+bv,pnl=tot-INIT,pp=(pnl/INIT)*100;
+  document.getElementById('liq-cash').textContent=fmt(cash);
+  document.getElementById('liq-btc').textContent=btc.toFixed(4);
+  document.getElementById('liq-btcval').textContent='≈ '+fmt(bv);
+  document.getElementById('p-cash').textContent=fmt(cash);
+  document.getElementById('p-btc').textContent=fmtB(btc);
+  document.getElementById('p-bval').textContent=fmt(bv);
+  document.getElementById('p-tot').textContent=fmt(tot);
+  const pe=document.getElementById('p-pnl');
+  const sg=pnl>=0?'+':'';
+  pe.textContent=sg+fmt(pnl)+' ('+sg+pp.toFixed(2)+'%)';
+  pe.style.color=pnl>=0?'#4ade80':'#f87171';
+  document.getElementById('p-avg').textContent=avgBuy>0?fmt(avgBuy):'—';
+}
+
+// ── LOG ──
+function addLog(msg){
+  const log=document.getElementById('tlog');
+  const d=new Date();
+  const t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>x.toString().padStart(2,'0')).join(':');
+  const item=document.createElement('div');item.className='li';item.textContent=t+' — '+msg;
+  if(log.firstChild&&log.firstChild.style&&log.firstChild.style.fontStyle==='italic')log.innerHTML='';
+  log.insertBefore(item,log.firstChild);
+}
+
+// ── TRADE ──
+document.getElementById('bbuy').addEventListener('click',()=>{
+  const qty=parseFloat(document.getElementById('qty').value);
+  const cost=qty*price*1.0008;
+  if(cost>cash){addLog('⚠️ Fonds insuff. — manque '+fmt(cost-cash));return;}
+  cash-=cost;totalCost+=cost;btc+=qty;avgBuy=totalCost/btc;
+  addLog('✅ ACHAT '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(cost));updatePort();
+});
+document.getElementById('bsell').addEventListener('click',()=>{
+  const qty=parseFloat(document.getElementById('qty').value);
+  if(qty>btc+.0001){addLog('⚠️ BTC insuff. — vous avez '+fmtB(btc));return;}
+  const proc=qty*price*.9992;btc=Math.max(0,btc-qty);cash+=proc;
+  if(btc<.0001){btc=0;totalCost=0;avgBuy=0;}else totalCost=avgBuy*btc;
+  addLog('🔴 VENTE '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(proc));updatePort();
+});
+document.getElementById('qty').addEventListener('input',function(){
+  const q=parseFloat(this.value);
+  document.getElementById('qdisp').textContent=q.toFixed(3)+' BTC';
+  document.getElementById('tval').textContent=fmt(q*price);
+});
+
+// ── VOL + PAUSE ──
+document.querySelectorAll('.vb').forEach(b=>b.addEventListener('click',function(){
+  document.querySelectorAll('.vb').forEach(x=>x.classList.remove('act'));this.classList.add('act');volMode=this.dataset.v;
+}));
+document.getElementById('pbtn').addEventListener('click',function(){
+  paused=!paused;this.textContent=paused?'▶ Reprendre':'⏸ Pause';
+});
+
+// ── INIT ──
+renderEvents('past');
+setInterval(tick,900);
+updatePort();
+</script>
+</body>
+</html>
