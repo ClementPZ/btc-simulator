@@ -15,7 +15,6 @@
   --green-border:rgba(22,163,74,0.28);--red-border:rgba(153,27,27,0.28);
   --green-text:#4ade80;--red-text:#f87171;
   --violet:#7c3aed;--violet-dark:#5b21b6;
-  --blood:#7f1d1d;--blood-dark:#450a0a;
   --radius:8px;--radius-sm:8px;
 }
 body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;padding:0;}
@@ -31,6 +30,12 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,mo
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:blink 1.4s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 .fomc-pill{background:rgba(124,58,237,.15);border:0.5px solid rgba(124,58,237,.35);border-radius:99px;padding:3px 10px;font-size:11px;color:#a78bfa;}
+.ws-status{display:flex;align-items:center;gap:5px;border-radius:99px;padding:3px 10px;font-size:11px;border:0.5px solid var(--border2);color:var(--text3);}
+.ws-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
+.ws-status.connected{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:#4ade80;}
+.ws-status.connected .ws-dot{background:#4ade80;}
+.ws-status.simulated{background:rgba(247,147,26,.1);border-color:rgba(247,147,26,.3);color:var(--orange);}
+.ws-status.simulated .ws-dot{background:var(--orange);}
 
 /* ── PRICE STRIP ── */
 .price-strip{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
@@ -42,20 +47,57 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,mo
 .tmeta strong{font-size:12px;color:var(--text);font-weight:500;}
 
 /* ── TRADE WIDGET ── */
-.trade-widget{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 220px;gap:16px;}
-@media(max-width:640px){.trade-widget{grid-template-columns:1fr;}}
+.trade-widget{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;}
+.tw-inner{display:grid;grid-template-columns:1fr 220px;gap:16px;}
+@media(max-width:640px){.tw-inner{grid-template-columns:1fr;}}
 .tw-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;}
-.liquidity-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.liquidity-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .liq-box{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;border:0.5px solid var(--border);}
 .liq-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
 .liq-val{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);}
 .liq-sub{font-size:10px;color:var(--text3);margin-top:1px;}
-.qty-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.qty-label{font-size:11px;color:var(--text2);min-width:28px;}
+
+/* amount input */
+.amount-section{margin-bottom:12px;}
+.amount-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.amount-input{flex:1;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;font-size:14px;font-family:inherit;color:var(--text);font-variant-numeric:tabular-nums;outline:none;min-width:0;}
+.amount-input:focus{border-color:var(--orange);}
+.amount-input::placeholder{color:var(--text3);}
+.amount-unit{font-size:10px;color:var(--text3);white-space:nowrap;}
+.quick-btns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.qbtn{padding:4px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text2);font-size:10px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
+.qbtn:hover{background:var(--surface2);color:var(--text);}
+.qbtn.allin{border-color:rgba(22,163,74,.4);color:#4ade80;}
+.qbtn.allout{border-color:rgba(124,58,237,.4);color:#a78bfa;}
+.amount-mode-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.mode-tab{padding:3px 9px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
+.mode-tab.act{background:var(--surface2);color:var(--text);border-color:var(--orange);}
+.slider-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.pct-label{font-size:11px;color:var(--text3);min-width:28px;}
 input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--orange);cursor:pointer;}
-.qty-val{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);min-width:72px;text-align:right;}
-.trade-val-row{display:flex;justify-content:space-between;align-items:center;}
+.pct-val{font-size:12px;font-variant-numeric:tabular-nums;color:var(--text);min-width:38px;text-align:right;}
+
+/* DCA section */
+.dca-section{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px;}
+.dca-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+.dca-title{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);}
+.dca-steps-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.dca-step-btn{padding:2px 8px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
+.dca-step-btn.act{background:rgba(247,147,26,.12);color:var(--orange);border-color:rgba(247,147,26,.35);}
+.dca-preview{display:flex;flex-direction:column;gap:4px;}
+.dca-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;}
+.dca-row-label{color:var(--text3);}
+.dca-row-val{color:var(--text);font-variant-numeric:tabular-nums;}
+.dca-row-buy{color:#4ade80;}
+.dca-row-sell{color:#a78bfa;}
+.dca-execute-btn{margin-top:8px;width:100%;padding:7px 0;border:none;border-radius:var(--radius-sm);font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:background .15s;}
+.dca-execute-buy{background:rgba(22,163,74,.15);color:#4ade80;border:0.5px solid rgba(22,163,74,.3);}
+.dca-execute-buy:hover{background:rgba(22,163,74,.25);}
+.dca-execute-sell{background:rgba(124,58,237,.15);color:#a78bfa;border:0.5px solid rgba(124,58,237,.3);}
+.dca-execute-sell:hover{background:rgba(124,58,237,.25);}
+
+.trade-val-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .trade-est{font-size:11px;color:var(--text3);}
 .trade-est strong{color:var(--text);font-size:14px;}
 .tw-right{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;}
@@ -81,6 +123,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .tft.act{background:var(--surface2);color:var(--text);border-color:var(--border2);}
 .chart-wrap{position:relative;width:100%;height:200px;}
 
+/* ── SIM MODE BANNER ── */
+.sim-banner{display:none;background:rgba(247,147,26,.08);border:0.5px solid rgba(247,147,26,.3);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--orange);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.sim-banner.hidden{display:none!important;}
+.sim-back-btn{padding:3px 10px;border:0.5px solid rgba(247,147,26,.5);border-radius:99px;background:transparent;color:var(--orange);font-size:10px;cursor:pointer;font-family:inherit;}
+.sim-back-btn:hover{background:rgba(247,147,26,.12);}
+
 /* ── UPDATE BAR ── */
 .update-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:7px 12px;background:var(--surface);border-radius:var(--radius-sm);border:0.5px solid var(--border);flex-wrap:wrap;gap:8px;}
 .update-left{font-size:10px;color:var(--text3);}
@@ -99,6 +147,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .ctab.act-past{background:rgba(22,163,74,.1);color:#4ade80;border-color:rgba(22,163,74,.3);}
 .ctab.act-now{background:rgba(247,147,26,.1);color:var(--orange);border-color:rgba(247,147,26,.3);}
 .ctab.act-fut{background:rgba(124,58,237,.1);color:#a78bfa;border-color:rgba(124,58,237,.3);}
+
+/* suggested scenario */
+.suggested-banner{background:rgba(247,147,26,.06);border:0.5px solid rgba(247,147,26,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;}
+.suggested-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.suggested-body{}
+.suggested-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:3px;}
+.suggested-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.suggested-desc{font-size:10px;color:var(--text2);line-height:1.45;}
+
 .split-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:640px){.split-cols{grid-template-columns:1fr;}}
 .col-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
@@ -129,6 +186,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .evt-imp-dn{color:var(--red-text);}
 .evt-src{font-size:9px;color:var(--text3);font-style:italic;}
 
+/* ── SIM MODE CHOICE MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px);}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:20px 24px;max-width:400px;width:90%;}
+.modal-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.modal-evt{font-size:11px;color:var(--orange);margin-bottom:12px;font-weight:600;}
+.modal-desc{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:16px;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;}
+.modal-btn{padding:10px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);font-size:11px;font-family:inherit;cursor:pointer;text-align:left;transition:background .12s;}
+.modal-btn:hover{background:var(--border);}
+.modal-btn-label{font-weight:600;margin-bottom:2px;}
+.modal-btn-sub{font-size:10px;color:var(--text3);}
+.modal-cancel{margin-top:4px;font-size:10px;color:var(--text3);background:transparent;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;}
+
 /* ── PORTFOLIO ── */
 .port{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px;}
@@ -139,7 +210,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 /* ── LOG ── */
 .logbox{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;}
-.logscroll{max-height:80px;overflow-y:auto;margin-top:8px;}
+.logscroll{max-height:120px;overflow-y:auto;margin-top:8px;}
 .li{font-size:10px;color:var(--text3);padding:3px 0;border-bottom:0.5px solid var(--border);line-height:1.4;}
 .li:last-child{border-bottom:none;}
 
@@ -159,60 +230,123 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
     <div class="site-sub">Mercredi 18 mars 2026 · Simulation pédagogique</div>
   </div>
   <div class="header-right">
-    <div class="live-pill"><div class="live-dot"></div>Prix simulé</div>
+    <div class="ws-status" id="ws-status"><div class="ws-dot"></div><span id="ws-label">Connexion…</span></div>
+    <div class="live-pill"><div class="live-dot"></div><span id="price-source">Prix live</span></div>
     <div class="fomc-pill">FOMC · 14h ET aujourd'hui</div>
   </div>
 </div>
 
 <!-- PRICE STRIP -->
 <div class="price-strip">
-  <span class="big-price" id="pdisplay">$74,382</span>
-  <span class="price-chg up" id="cdisplay">+375 (+0.51%)</span>
+  <span class="big-price" id="pdisplay">$—</span>
+  <span class="price-chg up" id="cdisplay">…</span>
   <div class="ticker-metas">
-    <div class="tmeta"><span>Market Cap</span><strong id="m-cap">$1.46T</strong></div>
+    <div class="tmeta"><span>Market Cap</span><strong id="m-cap">—</strong></div>
     <div class="tmeta"><span>Nasdaq (clôt. 17/3)</span><strong class="up">22,479 +0.47%</strong></div>
     <div class="tmeta"><span>WTI Pétrole</span><strong class="dn">$97.00 +3.7%</strong></div>
     <div class="tmeta"><span>Taux Fed</span><strong style="color:var(--orange);">3.50–3.75%</strong></div>
   </div>
 </div>
 
+<!-- SIM BANNER -->
+<div class="sim-banner hidden" id="sim-banner">
+  <span id="sim-banner-text">Mode simulation — événement actif</span>
+  <button class="sim-back-btn" id="sim-back-btn">↩ Retour au prix live</button>
+</div>
+
 <!-- TRADE WIDGET -->
 <div class="trade-widget">
-  <div>
-    <div class="tw-label">Liquidités & Quantité</div>
-    <div class="liquidity-row">
-      <div class="liq-box">
-        <div class="liq-label">Cash disponible</div>
-        <div class="liq-val" id="liq-cash">$100,000</div>
-        <div class="liq-sub">USD · prêt à investir</div>
+  <div class="tw-inner">
+    <div>
+      <div class="tw-label">Liquidités & Ordre</div>
+      <div class="liquidity-row">
+        <div class="liq-box">
+          <div class="liq-label">Cash disponible</div>
+          <div class="liq-val" id="liq-cash">$100,000</div>
+          <div class="liq-sub">USD · prêt à investir</div>
+        </div>
+        <div class="liq-box">
+          <div class="liq-label">BTC détenu</div>
+          <div class="liq-val" id="liq-btc">0.0000</div>
+          <div class="liq-sub" id="liq-btcval">≈ $0</div>
+        </div>
       </div>
-      <div class="liq-box">
-        <div class="liq-label">BTC détenu</div>
-        <div class="liq-val" id="liq-btc">0.0000</div>
-        <div class="liq-sub" id="liq-btcval">≈ $0</div>
+
+      <!-- Amount mode tabs -->
+      <div class="amount-mode-row">
+        <span style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-right:4px;">Mode</span>
+        <button class="mode-tab act" data-mode="pct">% Portefeuille</button>
+        <button class="mode-tab" data-mode="btc">Montant BTC</button>
+        <button class="mode-tab" data-mode="usd">Montant USD</button>
+      </div>
+
+      <!-- PCT mode -->
+      <div id="mode-pct" class="amount-section">
+        <div class="slider-wrap">
+          <span class="pct-label">Part</span>
+          <input type="range" id="pct-slider" min="1" max="100" step="1" value="10">
+          <span class="pct-val" id="pct-val-disp">10%</span>
+        </div>
+        <div class="quick-btns">
+          <button class="qbtn" data-pct="25">25%</button>
+          <button class="qbtn" data-pct="50">50%</button>
+          <button class="qbtn" data-pct="75">75%</button>
+          <button class="qbtn allin" data-pct="100">ALL IN ▲</button>
+          <button class="qbtn allout" data-pct="-100">ALL OUT ▼</button>
+        </div>
+      </div>
+
+      <!-- BTC mode -->
+      <div id="mode-btc" class="amount-section" style="display:none;">
+        <div class="amount-row">
+          <input type="number" class="amount-input" id="btc-input" placeholder="ex: 0.250" min="0.0001" step="0.0001">
+          <span class="amount-unit">BTC</span>
+        </div>
+      </div>
+
+      <!-- USD mode -->
+      <div id="mode-usd" class="amount-section" style="display:none;">
+        <div class="amount-row">
+          <input type="number" class="amount-input" id="usd-input" placeholder="ex: 5000" min="1" step="1">
+          <span class="amount-unit">USD</span>
+        </div>
+      </div>
+
+      <!-- DCA section -->
+      <div class="dca-section">
+        <div class="dca-header">
+          <span class="dca-title">DCA échelonné</span>
+          <div class="dca-steps-row">
+            <span style="font-size:9px;color:var(--text3);">Ordres:</span>
+            <button class="dca-step-btn act" data-steps="1">1×</button>
+            <button class="dca-step-btn" data-steps="3">3×</button>
+            <button class="dca-step-btn" data-steps="4">4×</button>
+            <button class="dca-step-btn" data-steps="5">5×</button>
+            <button class="dca-step-btn" data-steps="7">7×</button>
+            <button class="dca-step-btn" data-steps="10">10×</button>
+          </div>
+        </div>
+        <div class="dca-preview" id="dca-preview"></div>
+      </div>
+
+      <div class="trade-val-row">
+        <span class="trade-est">Total ordre ≈ <strong id="tval">$0</strong></span>
+        <span class="trade-est">slippage ~0.08%</span>
       </div>
     </div>
-    <div class="qty-row">
-      <span class="qty-label">Qty</span>
-      <input type="range" id="qty" min="0.001" max="1" step="0.001" value="0.1">
-      <span class="qty-val" id="qdisp">0.100 BTC</span>
+
+    <div class="tw-right">
+      <div class="tw-label" style="text-align:center;">Exécuter</div>
+      <button class="btn-buy" id="bbuy">▲ &nbsp;ACHETER BTC</button>
+      <button class="btn-sell" id="bsell">▼ &nbsp;VENDRE BTC</button>
+      <div class="btn-hint">Prix marché · simulation pédagogique</div>
     </div>
-    <div class="trade-val-row">
-      <span class="trade-est">Valeur ≈ <strong id="tval">$7,438</strong></span>
-      <span class="trade-est">slippage ~0.08%</span>
-    </div>
-  </div>
-  <div class="tw-right">
-    <div class="tw-label" style="text-align:center;">Exécuter</div>
-    <button class="btn-buy" id="bbuy">▲ &nbsp;ACHETER BTC</button>
-    <button class="btn-sell" id="bsell">▼ &nbsp;VENDRE BTC</button>
-    <div class="btn-hint">Prix marché · simulation pédagogique</div>
   </div>
 </div>
 
 <!-- METRICS -->
 <div class="metrics">
-  <div class="met"><div class="ml">Ouverture</div><div class="mv">$74,007</div></div>
+  <div class="met"><div class="ml">Ouverture</div><div class="mv" id="m-open">—</div></div>
   <div class="met"><div class="ml">Haut 24h</div><div class="mv" id="m-high">—</div></div>
   <div class="met"><div class="ml">Bas 24h</div><div class="mv" id="m-low">—</div></div>
   <div class="met"><div class="ml">FedWatch Hold</div><div class="mv" style="color:var(--orange);">98.9%</div></div>
@@ -236,9 +370,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 <!-- UPDATE BAR -->
 <div class="update-bar">
-  <span class="update-left">Simulation basée sur données réelles · Sources: <strong>Yahoo Finance · CoinDesk · CNBC · Kiplinger · CME FedWatch</strong></span>
+  <span class="update-left">Prix live via <strong>CoinCap WebSocket</strong> · Simulation pédagogique</span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <span style="font-size:10px;color:var(--text3);">Volatilité</span>
+    <span style="font-size:10px;color:var(--text3);">Volatilité sim.</span>
     <div class="vol-row">
       <button class="vb" data-v="low">Calme</button>
       <button class="vb act" data-v="med">Normale</button>
@@ -253,11 +387,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <div class="evt-section-header">
     <div class="sec-title">Scénarios & Événements — Impact Bitcoin</div>
     <div class="cat-tabs">
-      <button class="ctab act-past" data-cat="past">Passé</button>
-      <button class="ctab" data-cat="now">Aujourd'hui 18/03</button>
+      <button class="ctab" data-cat="past">Passé</button>
+      <button class="ctab act-now" data-cat="now">Aujourd'hui 18/03</button>
       <button class="ctab" data-cat="future">Futur</button>
     </div>
   </div>
+  <!-- Suggested scenario banner -->
+  <div class="suggested-banner" id="suggested-banner" style="display:none;"></div>
   <div class="split-cols">
     <div>
       <div class="col-header"><div class="col-icon col-icon-up"></div><span class="col-label col-label-up">Scénarios Haussiers</span></div>
@@ -291,19 +427,57 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 <!-- FOOTER -->
 <div class="footer">
-  Bitcoin Simulator · Simulation pédagogique uniquement · Pas un conseil financier · Données synthétiques inspirées de sources réelles<br>
-  Sources: <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://kiplinger.com" target="_blank">Kiplinger</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
+  Bitcoin Simulator · Simulation pédagogique uniquement · Pas un conseil financier<br>
+  Prix live: <a href="https://coincap.io" target="_blank">CoinCap WebSocket</a> · Sources: <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://kiplinger.com" target="_blank">Kiplinger</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
 </div>
 
+<!-- MODAL: sim mode choice -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Événement déclenché</div>
+    <div class="modal-evt" id="modal-evt-name"></div>
+    <div class="modal-desc" id="modal-evt-desc"></div>
+    <div class="modal-btns">
+      <button class="modal-btn" id="modal-diverge">
+        <div class="modal-btn-label">🚀 Simulation libre</div>
+        <div class="modal-btn-sub">Le prix dévie librement selon l'impact — ne revient pas au live</div>
+      </button>
+      <button class="modal-btn" id="modal-return">
+        <div class="modal-btn-label">🔄 Simulation puis retour live</div>
+        <div class="modal-btn-sub">Le prix dévie pendant ~60s puis converge progressivement vers le prix réel</div>
+      </button>
+    </div>
+    <button class="modal-cancel" id="modal-cancel">Annuler</button>
+  </div>
 </div>
+
+</div><!-- .page -->
 
 <script>
-// ── DATA ──
-const SPOT=74382,OPEN=74007,SUPPLY=19700000,INIT=100000;
-let price=SPOT,hi=SPOT,lo=SPOT,paused=false,volMode='med',shock=0;
-let cash=INIT,btc=0,totalCost=0,avgBuy=0;
+// ═══════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════
+const SUPPLY=19700000,INIT=100000;
 const vols={low:.0004,med:.0011,high:.0026};
 
+let price=0,OPEN=0,hi=0,lo=Infinity;
+let paused=false,volMode='med',shock=0;
+let cash=INIT,btc=0,totalCost=0,avgBuy=0;
+
+// Price mode: 'live' = real WS price + sim drift | 'sim_free' = fully simulated | 'sim_return' = sim + returns to live
+let priceMode='live'; // live | sim_free | sim_return
+let livePrice=0;       // last known real price from WS
+let simReturnTarget=0; // target price to return to
+let simReturnTimer=0;  // ticks before starting return
+
+// Amount & DCA
+let amountMode='pct'; // pct | btc | usd
+let dcaSteps=1;
+let pendingDcaOrders=[];
+
+// ═══════════════════════════════════════════════════════
+// HIST DATA
+// ═══════════════════════════════════════════════════════
 const HIST={
   '2020':{d:[7200,8500,6500,7100,9000,10000,11000,11800,10500,13000,15000,19000,29000],c:'#3b82f6'},
   '2021':{d:[29000,33000,38000,50000,58000,64000,35000,40000,47000,43000,61000,68000,46000],c:'#22c55e'},
@@ -312,6 +486,24 @@ const HIST={
   '2024':{d:[44500,50000,62000,73000,65000,68000,60000,56000,64000,67000,68000,99000,106000],c:'#8b5cf6'},
   '2025':{d:[106000,98000,86000,88000,95000,110000,122000,126000,115000,105000,90000,75000,73000],c:'#06b6d4'},
   '2026':{d:[73000,68000,60000,65000,70000,72000,74000],c:'#f59e0b'},
+};
+
+// ═══════════════════════════════════════════════════════
+// EVENTS DATA
+// ═══════════════════════════════════════════════════════
+const SUGGESTED={
+  now:{
+    bull:{n:'FOMC dovish — dot plot 2 cuts',desc:'Scénario le plus probable aujourd\'hui: Powell signale l\'inflation Iran comme transitoire. Dot plot → 2 coupes 2026. Probabilité ~28% selon CME FedWatch. Potentiel +$80k.',impact:'+12%'},
+    bear:{n:'FOMC hawkish + sell-the-news',desc:'Pattern le plus récurrent en 2025: BTC chute -5 à -8% dans les 48h post-FOMC, même quand la décision est attendue. La guerre Iran + WTI $97 renforce ce scénario baissier court terme.',impact:'-8%'}
+  },
+  past:{
+    bull:{n:'ETF Spot BlackRock/Fidelity',desc:'Événement le plus structurellement bullish de l\'histoire récente. $10Md entrants en 2 mois, changement permanent du marché.',impact:'+25%'},
+    bear:{n:'FTX implosion',desc:'Événement le plus destructeur du cycle. $8Md de fonds clients disparus, contagion totale, bottom à $15,479.',impact:'-25%'}
+  },
+  future:{
+    bull:{n:'Loi SBR fédérale US',desc:'Si le Congrès entérine la Strategic Bitcoin Reserve: l\'État américain devient acheteur structurel. 19 projets en cours dans 8 États.',impact:'+20%'},
+    bear:{n:'Récession US — jobs data',desc:'Chômage 4.4% + 3 mois consécutifs de mauvais payrolls = récession pricée. BTC corrélé TradFi en sell-off généralisé.',impact:'-20%'}
+  }
 };
 
 const EVTS={
@@ -338,9 +530,9 @@ const EVTS={
       {n:'FOMC dovish — dot plot 2 cuts',d:'18 mars · 14h ET',s:+12,desc:'Powell signale Iran transitoire. Dot plot → 2 coupes 2026. BTC peut viser $80k. Prob. 25-30% selon MEXC/99BTC.',src:'MEXC / 99Bitcoins / Kiplinger',badge:'live'},
       {n:'Nasdaq futures +0.51%',d:'18 mars matin',s:+4,desc:'Nasdaq fut. 25,180 (+0.51%). S&P +0.53%. Si ouverture positive → risk-on corrélé BTC.',src:'Yahoo Finance Markets',badge:'live'},
       {n:'Strategy (MSTR) +$1.57Md BTC',d:'Semaine 16-20 mars',s:+7,desc:'MicroStrategy achète 22,337 BTC à $70,200/coin. Accumulation institutionnelle agressive continue.',src:'TheStreet / Yahoo Finance',badge:'live'},
-      {n:'Nasdaq × NYSE tokenisent actions',d:'15 mars 2026',s:+9,desc:'Nasdaq + ICE s\'allient à des exchanges crypto pour tokeniser les $126T du marché actions sur blockchain.',src:'CoinDesk Mar 2026',badge:'live'},
+      {n:'Nasdaq × NYSE tokenisent actions',d:'15 mars 2026',s:+9,desc:"Nasdaq + ICE s'allient à des exchanges crypto pour tokeniser les $126T du marché actions sur blockchain.",src:'CoinDesk Mar 2026',badge:'live'},
       {n:'ETF inflows mars +$1.3Md',d:'Mars 2026 YTD',s:+8,desc:'1er mois positif depuis octobre sur ETFs spot BTC. $250M le 10 mars seul. Sentiment en amélioration.',src:'CoinDesk / Farside Investors',badge:'live'},
-      {n:'Crypto accès Fed Reserve',d:'5 mars 2026',s:+10,desc:'L\'industrie crypto accède au système de paiement Federal Reserve. Signal de légitimité majeur.',src:'CoinDesk / MetaMask',badge:'live'},
+      {n:'Crypto accès Fed Reserve',d:'5 mars 2026',s:+10,desc:"L'industrie crypto accède au système de paiement Federal Reserve. Signal de légitimité majeur.",src:'CoinDesk / MetaMask',badge:'live'},
     ],
     bear:[
       {n:'FOMC hawkish — 0 cut 2026',d:'18 mars · 14h ET',s:-10,desc:'Dot plot → 0 coupe, Powell caution sur inflation Iran. Sell-the-news. BTC a chuté après 7/8 FOMC en 2025.',src:'MEXC / Phemex / 99Bitcoins',badge:'live'},
@@ -355,7 +547,7 @@ const EVTS={
     bull:[
       {n:'Breakout $80k post-FOMC dovish',d:'T2 2026',s:+15,desc:'Si BTC casse $74k en volume après signal dovish: techniquement ouvert vers $80k puis $90-100k.',src:'Extrapolé CoinDesk / 99BTC',badge:'fut'},
       {n:'1ère baisse taux Fed',d:'Juin–Oct 2026',s:+12,desc:'CME FedWatch pricait juin avant Iran. JPMorgan: 1 coupe 2026. Historiquement BTC rally 2 semaines avant.',src:'CME FedWatch / JPMorgan',badge:'fut'},
-      {n:'Loi SBR fédérale US',d:'2026',s:+20,desc:'19 projets SBR dans 8 États. Si Congrès: État américain = acheteur structurel massif. Demand inélastique.',src:'Caleb & Brown / Congress.gov',badge:'fut'},
+      {n:'Loi SBR fédérale US',d:'2026',s:+20,desc:"19 projets SBR dans 8 États. Si Congrès: État américain = acheteur structurel massif. Demand inélastique.",src:'Caleb & Brown / Congress.gov',badge:'fut'},
       {n:'Résolution conflit Iran',d:'T2–T3 2026',s:+10,desc:'Hormuz rouvre: pétrole baisse, inflation reflue, Fed coupe. Double bullish BTC potentiel +15-25%.',src:'Extrapolé Reuters / Schwab',badge:'fut'},
       {n:'ATH > $150k bull case',d:'2026–2027',s:+25,desc:'Scénario ARK Invest: SBR + baisses taux + ETF inflows. Cycle pas terminé. Bull case $200k+.',src:'ARK Invest / Bitwise',badge:'fut'},
       {n:'Coinbase × Bybit deal officiel',d:'T2 2026',s:+8,desc:'Partenariat évoqué en pre-market. Si officiel: consolidation exchanges, volume institutionnel en hausse.',src:'Extrapolé TheStreet Mar 2026',badge:'fut'},
@@ -371,37 +563,70 @@ const EVTS={
   }
 };
 
-// ── EVENTS RENDER ──
-let currentCat='past';
-const badgeLbl={live:'LIVE · 18 mars',fut:'Futur',ext:'Historique'};
-const badgeCls={live:'badge-live',fut:'badge-fut',ext:'badge-ext'};
-
-function renderEvents(cat){
-  currentCat=cat;
-  document.querySelectorAll('.ctab').forEach(b=>{b.className='ctab';if(b.dataset.cat===cat)b.classList.add('act-'+cat);});
-  ['col-bull','col-bear'].forEach(id=>document.getElementById(id).innerHTML='');
-  EVTS[cat].bull.forEach(e=>appendEvt('col-bull',e,true));
-  EVTS[cat].bear.forEach(e=>appendEvt('col-bear',e,false));
+// ═══════════════════════════════════════════════════════
+// WEBSOCKET — CoinCap
+// ═══════════════════════════════════════════════════════
+let ws=null,wsReconnectTimer=null;
+function connectWS(){
+  const statusEl=document.getElementById('ws-status');
+  const labelEl=document.getElementById('ws-label');
+  const sourceEl=document.getElementById('price-source');
+  statusEl.className='ws-status';
+  labelEl.textContent='Connexion…';
+  try{
+    ws=new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin');
+    ws.onopen=()=>{
+      statusEl.className='ws-status connected';
+      labelEl.textContent='Live · CoinCap';
+      sourceEl.textContent='Prix live';
+      addLog('🔗 WebSocket CoinCap connecté');
+    };
+    ws.onmessage=e=>{
+      try{
+        const d=JSON.parse(e.data);
+        if(d.bitcoin){
+          const p=parseFloat(d.bitcoin);
+          if(p>0){
+            livePrice=p;
+            if(price===0){
+              price=p;OPEN=p;hi=p;lo=p;
+              document.getElementById('m-open').textContent=fmt(p);
+            }
+          }
+        }
+      }catch(err){}
+    };
+    ws.onerror=()=>{fallbackSim();};
+    ws.onclose=()=>{
+      if(livePrice===0)fallbackSim();
+      else{
+        statusEl.className='ws-status simulated';
+        labelEl.textContent='Reconnexion…';
+        wsReconnectTimer=setTimeout(connectWS,5000);
+      }
+    };
+  }catch(err){fallbackSim();}
 }
-function appendEvt(col,e,bull){
-  const c=document.getElementById(col);
-  const b=document.createElement('button');
-  b.className='evt '+(bull?'evt-bull':'evt-bear');
-  const sg=e.s>0?'+':'';
-  b.innerHTML=`<div class="evt-head"><span class="evt-name ${bull?'evt-name-up':'evt-name-dn'}">${e.n}</span><span class="evt-badge ${badgeCls[e.badge||'ext']}">${badgeLbl[e.badge||'ext']}</span></div><div class="evt-desc">${e.desc}</div><div class="evt-foot"><span class="evt-impact ${bull?'evt-imp-up':'evt-imp-dn'}">${sg}${e.s}% impact</span><span class="evt-src">${e.src}</span></div>`;
-  b.addEventListener('click',()=>{shock+=e.s;addLog((bull?'🟢 BULL':'🔴 BEAR')+' — '+e.n+' ('+sg+e.s+'%)');});
-  c.appendChild(b);
+function fallbackSim(){
+  const statusEl=document.getElementById('ws-status');
+  const labelEl=document.getElementById('ws-label');
+  const sourceEl=document.getElementById('price-source');
+  statusEl.className='ws-status simulated';
+  labelEl.textContent='Simulé (fallback)';
+  sourceEl.textContent='Prix simulé';
+  if(price===0){price=74382;OPEN=74382;hi=74382;lo=74382;livePrice=74382;}
+  addLog('⚠️ WebSocket indisponible — mode simulation');
 }
-document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>renderEvents(b.dataset.cat)));
 
-// ── CHART ──
+// ═══════════════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════════════
 let liveHist=[];
-for(let i=80;i>=0;i--)liveHist.push(+(SPOT+(Math.random()-.5)*3000).toFixed(0));
 let currentTF='live';
 const ctx=document.getElementById('btcChart').getContext('2d');
 const chart=new Chart(ctx,{
   type:'line',
-  data:{labels:liveHist.map(()=>''),datasets:[{data:[...liveHist],borderColor:'#F7931A',backgroundColor:'rgba(247,147,26,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.3}]},
+  data:{labels:[],datasets:[{data:[],borderColor:'#F7931A',backgroundColor:'rgba(247,147,26,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.3}]},
   options:{responsive:true,maintainAspectRatio:false,animation:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+Math.round(c.parsed.y).toLocaleString()}}},
     scales:{x:{display:false},y:{ticks:{font:{size:9},color:'#71717a',callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(255,255,255,0.05)'}}}}
@@ -410,28 +635,67 @@ function switchTF(tf){
   currentTF=tf;
   document.querySelectorAll('.tft').forEach(t=>t.classList.toggle('act',t.dataset.tf===tf));
   if(tf==='live'){
-    chart.data.datasets[0].borderColor='#F7931A';chart.data.datasets[0].backgroundColor='rgba(247,147,26,0.08)';
-    chart.data.datasets[0].data=[...liveHist];chart.data.labels=liveHist.map(()=>'');chart.options.scales.x.display=false;
-  } else {
-    const h=HIST[tf];chart.data.datasets[0].borderColor=h.c;chart.data.datasets[0].backgroundColor=h.c+'18';
-    chart.data.datasets[0].data=h.d;chart.data.labels=h.d.map((_,i)=>'M'+(i+1));chart.options.scales.x.display=true;
+    chart.data.datasets[0].borderColor='#F7931A';
+    chart.data.datasets[0].backgroundColor='rgba(247,147,26,0.08)';
+    chart.data.datasets[0].data=[...liveHist];
+    chart.data.labels=liveHist.map(()=>'');
+    chart.options.scales.x.display=false;
+  }else{
+    const h=HIST[tf];
+    chart.data.datasets[0].borderColor=h.c;
+    chart.data.datasets[0].backgroundColor=h.c+'18';
+    chart.data.datasets[0].data=h.d;
+    chart.data.labels=h.d.map((_,i)=>'M'+(i+1));
+    chart.options.scales.x.display=true;
     chart.options.scales.x.ticks={font:{size:9},color:'#71717a'};
   }
   chart.update();
 }
 document.querySelectorAll('.tft').forEach(t=>t.addEventListener('click',()=>switchTF(t.dataset.tf)));
 
-// ── TICK ──
+// ═══════════════════════════════════════════════════════
+// TICK — price engine
+// ═══════════════════════════════════════════════════════
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtB=n=>n.toFixed(4)+' BTC';
+
 function tick(){
-  if(paused)return;
+  if(paused||price===0)return;
+
   const v=vols[volMode];
   let drift=(Math.random()-.499)*price*v;
-  if(shock!==0){drift+=price*(shock/100)*.18;shock*=.82;if(Math.abs(shock)<.05)shock=0;}
-  price=Math.max(20000,Math.min(220000,price+drift));
+
+  if(priceMode==='live'&&livePrice>0){
+    // Gently pull simulated price toward live price
+    const pull=(livePrice-price)*0.15;
+    price+=pull+drift*0.3;
+  } else if(priceMode==='sim_free'){
+    if(shock!==0){drift+=price*(shock/100)*.18;shock*=.82;if(Math.abs(shock)<.05)shock=0;}
+    price+=drift;
+  } else if(priceMode==='sim_return'){
+    if(shock!==0){drift+=price*(shock/100)*.18;shock*=.82;if(Math.abs(shock)<.05)shock=0;}
+    price+=drift;
+    simReturnTimer--;
+    if(simReturnTimer<=0&&livePrice>0){
+      // Pull back toward live price
+      const pull=(livePrice-price)*0.04;
+      price+=pull;
+      if(Math.abs(price-livePrice)<livePrice*0.002){
+        // Close enough — snap back to live
+        price=livePrice;
+        priceMode='live';
+        document.getElementById('sim-banner').classList.add('hidden');
+        addLog('↩ Prix resynchronisé avec le marché réel');
+      }
+    }
+  }
+
+  price=Math.max(10000,Math.min(500000,price));
   hi=Math.max(hi,price);lo=Math.min(lo,price);
-  liveHist.push(+price.toFixed(0));if(liveHist.length>81)liveHist.shift();
+
+  liveHist.push(+price.toFixed(0));
+  if(liveHist.length>120)liveHist.shift();
+
   const chg=price-OPEN,pct=(chg/OPEN)*100;
   document.getElementById('pdisplay').textContent=fmt(price);
   const cd=document.getElementById('cdisplay');
@@ -441,13 +705,197 @@ function tick(){
   document.getElementById('m-high').textContent=fmt(hi);
   document.getElementById('m-low').textContent=fmt(lo);
   document.getElementById('m-cap').textContent='$'+(price*SUPPLY/1e12).toFixed(2)+'T';
-  const qty=parseFloat(document.getElementById('qty').value);
-  document.getElementById('tval').textContent=fmt(qty*price);
-  if(currentTF==='live'){chart.data.datasets[0].data=[...liveHist];chart.update('none');}
+
+  if(currentTF==='live'){chart.data.datasets[0].data=[...liveHist];chart.data.labels=liveHist.map(()=>'');chart.update('none');}
+  updateAmountDisplay();
+  updatePort();
+
+  // Execute pending DCA orders
+  if(pendingDcaOrders.length>0){
+    const order=pendingDcaOrders.shift();
+    executeSingleOrder(order.type,order.qty,order.usd);
+    if(pendingDcaOrders.length>0){
+      addLog(`⏳ DCA: ${pendingDcaOrders.length} ordre(s) restant(s)`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// AMOUNT & DCA LOGIC
+// ═══════════════════════════════════════════════════════
+function getOrderQty(side){
+  // Returns {qty, usdValue} or null
+  if(amountMode==='pct'){
+    const pct=parseInt(document.getElementById('pct-slider').value)/100;
+    if(side==='buy'){
+      const usd=cash*pct;
+      const qty=usd/price;
+      return{qty,usdValue:usd};
+    } else {
+      const qty=btc*pct;
+      const usdValue=qty*price;
+      return{qty,usdValue};
+    }
+  } else if(amountMode==='btc'){
+    const qty=parseFloat(document.getElementById('btc-input').value)||0;
+    return{qty,usdValue:qty*price};
+  } else if(amountMode==='usd'){
+    const usd=parseFloat(document.getElementById('usd-input').value)||0;
+    const qty=usd/price;
+    return{qty,usdValue:usd};
+  }
+  return null;
+}
+
+function buildDcaOrders(type,totalQty,totalUsd){
+  const orders=[];
+  const n=dcaSteps;
+  for(let i=0;i<n;i++){
+    const frac=1/n;
+    const q=totalQty*frac;
+    const u=totalUsd*frac;
+    // Price echelon: buys go lower (discount), sells go higher (premium)
+    const priceMult= type==='buy' ? (1-(i*0.005)) : (1+(i*0.005));
+    orders.push({type,qty:q,usd:u,priceMult,label:`Ordre ${i+1}/${n}`});
+  }
+  return orders;
+}
+
+function renderDcaPreview(){
+  const preview=document.getElementById('dca-preview');
+  if(!price){preview.innerHTML='';return;}
+  const side_buy=getOrderQty('buy');
+  const side_sell=getOrderQty('sell');
+  if(dcaSteps===1){
+    const buyUsd=side_buy?side_buy.usdValue:0;
+    const sellUsd=side_sell?side_sell.usdValue:0;
+    preview.innerHTML=`<div class="dca-row"><span class="dca-row-label">Ordre unique</span><span class="dca-row-val">${fmt(buyUsd)} achat / ${fmt(sellUsd)} vente</span></div>`;
+    return;
+  }
+  const n=dcaSteps;
+  let html='';
+  for(let i=0;i<Math.min(n,3);i++){
+    const buyPct=(1-(i*0.5)).toFixed(1);
+    const sellPct=(1+(i*0.5)).toFixed(1);
+    const buyP=price*(1-(i*0.005));
+    const sellP=price*(1+(i*0.005));
+    const buyQ=side_buy?(side_buy.qty/n):0;
+    const sellQ=side_sell?(side_sell.qty/n):0;
+    html+=`<div class="dca-row"><span class="dca-row-label">Ordre ${i+1}</span><span class="dca-row-buy">▲ ${buyQ.toFixed(4)} BTC @ ~${fmt(buyP)}</span><span class="dca-row-sell">▼ ${sellQ.toFixed(4)} BTC @ ~${fmt(sellP)}</span></div>`;
+  }
+  if(n>3)html+=`<div class="dca-row"><span class="dca-row-label" style="font-style:italic;">+ ${n-3} ordres supplémentaires…</span></div>`;
+  preview.innerHTML=html;
+}
+
+function updateAmountDisplay(){
+  if(!price)return;
+  const bqBuy=getOrderQty('buy');
+  const bqSell=getOrderQty('sell');
+  const displayUsd=bqBuy?bqBuy.usdValue:(bqSell?bqSell.usdValue:0);
+  document.getElementById('tval').textContent=fmt(displayUsd);
+  renderDcaPreview();
+}
+
+// ═══════════════════════════════════════════════════════
+// TRADE EXECUTION
+// ═══════════════════════════════════════════════════════
+function executeSingleOrder(type,qty,usdValue){
+  if(type==='buy'){
+    const cost=qty*price*1.0008;
+    if(cost>cash+1){addLog('⚠️ Fonds insuff. pour cet ordre DCA');return;}
+    cash-=cost;totalCost+=cost;btc+=qty;avgBuy=totalCost/btc;
+    addLog('✅ ACHAT '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(cost));
+  } else {
+    if(qty>btc+.0001){addLog('⚠️ BTC insuff. pour cet ordre DCA');return;}
+    const proc=qty*price*.9992;
+    btc=Math.max(0,btc-qty);cash+=proc;
+    if(btc<.0001){btc=0;totalCost=0;avgBuy=0;}else totalCost=avgBuy*btc;
+    addLog('🔴 VENTE '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(proc));
+  }
   updatePort();
 }
 
-// ── PORTFOLIO ──
+document.getElementById('bbuy').addEventListener('click',()=>{
+  const o=getOrderQty('buy');
+  if(!o||o.qty<=0){addLog('⚠️ Montant invalide');return;}
+  if(dcaSteps===1){
+    executeSingleOrder('buy',o.qty,o.usdValue);
+  } else {
+    pendingDcaOrders=buildDcaOrders('buy',o.qty,o.usdValue);
+    addLog(`🔀 DCA ACHAT — ${dcaSteps} ordres échelonnés (prix décroissants)`);
+    // Execute first immediately
+    const first=pendingDcaOrders.shift();
+    executeSingleOrder(first.type,first.qty,first.usd);
+  }
+});
+
+document.getElementById('bsell').addEventListener('click',()=>{
+  const o=getOrderQty('sell');
+  if(!o||o.qty<=0){addLog('⚠️ Montant invalide');return;}
+  if(dcaSteps===1){
+    executeSingleOrder('sell',o.qty,o.usdValue);
+  } else {
+    pendingDcaOrders=buildDcaOrders('sell',o.qty,o.usdValue);
+    addLog(`🔀 DCA VENTE — ${dcaSteps} ordres échelonnés (prix croissants)`);
+    const first=pendingDcaOrders.shift();
+    executeSingleOrder(first.type,first.qty,first.usd);
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// AMOUNT MODE CONTROLS
+// ═══════════════════════════════════════════════════════
+document.querySelectorAll('.mode-tab').forEach(t=>t.addEventListener('click',function(){
+  amountMode=this.dataset.mode;
+  document.querySelectorAll('.mode-tab').forEach(x=>x.classList.remove('act'));
+  this.classList.add('act');
+  document.getElementById('mode-pct').style.display=amountMode==='pct'?'block':'none';
+  document.getElementById('mode-btc').style.display=amountMode==='btc'?'block':'none';
+  document.getElementById('mode-usd').style.display=amountMode==='usd'?'block':'none';
+  updateAmountDisplay();
+}));
+
+document.getElementById('pct-slider').addEventListener('input',function(){
+  document.getElementById('pct-val-disp').textContent=this.value+'%';
+  updateAmountDisplay();
+});
+
+document.querySelectorAll('.qbtn').forEach(b=>b.addEventListener('click',function(){
+  const pct=parseInt(this.dataset.pct);
+  if(pct===100){
+    // All in buy
+    amountMode='pct';
+    document.getElementById('pct-slider').value=100;
+    document.getElementById('pct-val-disp').textContent='100%';
+    updateAmountDisplay();
+    document.getElementById('bbuy').click();
+  } else if(pct===-100){
+    // All out sell
+    amountMode='pct';
+    document.getElementById('pct-slider').value=100;
+    document.getElementById('pct-val-disp').textContent='100%';
+    updateAmountDisplay();
+    document.getElementById('bsell').click();
+  } else {
+    document.getElementById('pct-slider').value=Math.abs(pct);
+    document.getElementById('pct-val-disp').textContent=Math.abs(pct)+'%';
+    updateAmountDisplay();
+  }
+}));
+
+document.querySelectorAll('.dca-step-btn').forEach(b=>b.addEventListener('click',function(){
+  dcaSteps=parseInt(this.dataset.steps);
+  document.querySelectorAll('.dca-step-btn').forEach(x=>x.classList.remove('act'));
+  this.classList.add('act');
+  renderDcaPreview();
+}));
+
+document.getElementById('btc-input').addEventListener('input',updateAmountDisplay);
+document.getElementById('usd-input').addEventListener('input',updateAmountDisplay);
+
+// ═══════════════════════════════════════════════════════
+// PORTFOLIO
+// ═══════════════════════════════════════════════════════
 function updatePort(){
   const bv=btc*price,tot=cash+bv,pnl=tot-INIT,pp=(pnl/INIT)*100;
   document.getElementById('liq-cash').textContent=fmt(cash);
@@ -464,7 +912,9 @@ function updatePort(){
   document.getElementById('p-avg').textContent=avgBuy>0?fmt(avgBuy):'—';
 }
 
-// ── LOG ──
+// ═══════════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════════
 function addLog(msg){
   const log=document.getElementById('tlog');
   const d=new Date();
@@ -474,37 +924,116 @@ function addLog(msg){
   log.insertBefore(item,log.firstChild);
 }
 
-// ── TRADE ──
-document.getElementById('bbuy').addEventListener('click',()=>{
-  const qty=parseFloat(document.getElementById('qty').value);
-  const cost=qty*price*1.0008;
-  if(cost>cash){addLog('⚠️ Fonds insuff. — manque '+fmt(cost-cash));return;}
-  cash-=cost;totalCost+=cost;btc+=qty;avgBuy=totalCost/btc;
-  addLog('✅ ACHAT '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(cost));updatePort();
+// ═══════════════════════════════════════════════════════
+// EVENTS RENDER
+// ═══════════════════════════════════════════════════════
+let currentCat='now';
+const badgeLbl={live:'LIVE · 18 mars',fut:'Futur',ext:'Historique'};
+const badgeCls={live:'badge-live',fut:'badge-fut',ext:'badge-ext'};
+
+function renderSuggested(cat){
+  const banner=document.getElementById('suggested-banner');
+  const s=SUGGESTED[cat];
+  if(!s){banner.style.display='none';return;}
+  banner.style.display='flex';
+  banner.innerHTML=`
+    <div class="suggested-icon">💡</div>
+    <div class="suggested-body">
+      <div class="suggested-label">Scénario suggéré aujourd'hui</div>
+      <div class="suggested-title">Bull: ${s.bull.n} <span style="color:#4ade80;">${s.bull.impact}</span> &nbsp;|&nbsp; Bear: ${s.bear.n} <span style="color:#f87171;">${s.bear.impact}</span></div>
+      <div class="suggested-desc">${s.bull.desc}</div>
+    </div>`;
+}
+
+function renderEvents(cat){
+  currentCat=cat;
+  document.querySelectorAll('.ctab').forEach(b=>{
+    b.className='ctab';
+    if(b.dataset.cat===cat)b.classList.add('act-'+cat);
+  });
+  ['col-bull','col-bear'].forEach(id=>document.getElementById(id).innerHTML='');
+  EVTS[cat].bull.forEach(e=>appendEvt('col-bull',e,true));
+  EVTS[cat].bear.forEach(e=>appendEvt('col-bear',e,false));
+  renderSuggested(cat);
+}
+
+// Pending event for modal
+let pendingEvent=null;
+
+function appendEvt(col,e,bull){
+  const c=document.getElementById(col);
+  const b=document.createElement('button');
+  b.className='evt '+(bull?'evt-bull':'evt-bear');
+  const sg=e.s>0?'+':'';
+  b.innerHTML=`<div class="evt-head"><span class="evt-name ${bull?'evt-name-up':'evt-name-dn'}">${e.n}</span><span class="evt-badge ${badgeCls[e.badge||'ext']}">${badgeLbl[e.badge||'ext']}</span></div><div class="evt-desc">${e.desc}</div><div class="evt-foot"><span class="evt-impact ${bull?'evt-imp-up':'evt-imp-dn'}">${sg}${e.s}% impact</span><span class="evt-src">${e.src}</span></div>`;
+  b.addEventListener('click',()=>openEventModal(e,bull));
+  c.appendChild(b);
+}
+
+function openEventModal(e,bull){
+  pendingEvent={e,bull};
+  document.getElementById('modal-evt-name').textContent=e.n;
+  document.getElementById('modal-evt-desc').textContent=e.desc+' Impact estimé: '+(e.s>0?'+':'')+e.s+'%';
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+document.getElementById('modal-diverge').addEventListener('click',()=>{
+  if(!pendingEvent)return;
+  applyEvent(pendingEvent.e,pendingEvent.bull,'free');
+  closeModal();
 });
-document.getElementById('bsell').addEventListener('click',()=>{
-  const qty=parseFloat(document.getElementById('qty').value);
-  if(qty>btc+.0001){addLog('⚠️ BTC insuff. — vous avez '+fmtB(btc));return;}
-  const proc=qty*price*.9992;btc=Math.max(0,btc-qty);cash+=proc;
-  if(btc<.0001){btc=0;totalCost=0;avgBuy=0;}else totalCost=avgBuy*btc;
-  addLog('🔴 VENTE '+fmtB(qty)+' @ '+fmt(price)+' = '+fmt(proc));updatePort();
+document.getElementById('modal-return').addEventListener('click',()=>{
+  if(!pendingEvent)return;
+  applyEvent(pendingEvent.e,pendingEvent.bull,'return');
+  closeModal();
 });
-document.getElementById('qty').addEventListener('input',function(){
-  const q=parseFloat(this.value);
-  document.getElementById('qdisp').textContent=q.toFixed(3)+' BTC';
-  document.getElementById('tval').textContent=fmt(q*price);
+document.getElementById('modal-cancel').addEventListener('click',closeModal);
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.add('hidden');
+  pendingEvent=null;
+}
+
+function applyEvent(e,bull,mode){
+  shock+=e.s;
+  priceMode=mode==='free'?'sim_free':'sim_return';
+  if(mode==='return'){
+    simReturnTimer=66; // ~60s at 900ms tick
+    simReturnTarget=livePrice||price;
+  }
+  const banner=document.getElementById('sim-banner');
+  banner.classList.remove('hidden');
+  document.getElementById('sim-banner-text').textContent=
+    (mode==='free'?'🚀 Simulation libre':'🔄 Simulation + retour live')+' — '+e.n+' ('+(e.s>0?'+':'')+e.s+'%)';
+  const sg=e.s>0?'+':'';
+  addLog((bull?'🟢 BULL':'🔴 BEAR')+' ['+(mode==='free'?'libre':'retour')+'] — '+e.n+' ('+sg+e.s+'%)');
+}
+
+document.getElementById('sim-back-btn').addEventListener('click',()=>{
+  priceMode='live';shock=0;pendingDcaOrders=[];
+  document.getElementById('sim-banner').classList.add('hidden');
+  addLog('↩ Retour au prix live');
 });
 
-// ── VOL + PAUSE ──
+document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>renderEvents(b.dataset.cat)));
+
+// ═══════════════════════════════════════════════════════
+// VOL + PAUSE
+// ═══════════════════════════════════════════════════════
 document.querySelectorAll('.vb').forEach(b=>b.addEventListener('click',function(){
-  document.querySelectorAll('.vb').forEach(x=>x.classList.remove('act'));this.classList.add('act');volMode=this.dataset.v;
+  document.querySelectorAll('.vb').forEach(x=>x.classList.remove('act'));
+  this.classList.add('act');volMode=this.dataset.v;
 }));
 document.getElementById('pbtn').addEventListener('click',function(){
   paused=!paused;this.textContent=paused?'▶ Reprendre':'⏸ Pause';
 });
 
-// ── INIT ──
-renderEvents('past');
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderEvents('now'); // default tab = présent
+connectWS();
 setInterval(tick,900);
 updatePort();
 </script>
