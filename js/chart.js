@@ -3,44 +3,50 @@
 // OHLC candlesticks + timeframes 1s/1m/5m/15m/1h/4h/1D/1W/1M
 // ═══════════════════════════════════════════════════════
 
-// ── TF config ──
-// hist:false = live candle buffers
-// hist:true  = aggregate from HIST monthly data
-// range TFs (3D/1W/1M/3M/6M/9M/1Y) derive from HIST or live depending on available data
-const TF_CONFIG = {
-  '1s':  { ms: 1000,         label: '1s',  hist: false },
-  '1m':  { ms: 60000,        label: '1m',  hist: false },
-  '5m':  { ms: 300000,       label: '5m',  hist: false },
-  '15m': { ms: 900000,       label: '15m', hist: false },
-  '1h':  { ms: 3600000,      label: '1h',  hist: false },
-  '4h':  { ms: 14400000,     label: '4h',  hist: false },
-  '1D':  { ms: 86400000,     label: '1D',  hist: false },
-  // Range views — slice from all HIST data
-  '3D':  { range: 3,   unit: 'day',   hist: true },
-  '1W':  { range: 7,   unit: 'day',   hist: true },
-  '1M':  { range: 1,   unit: 'month', hist: true },
-  '3M':  { range: 3,   unit: 'month', hist: true },
-  '6M':  { range: 6,   unit: 'month', hist: true },
-  '9M':  { range: 9,   unit: 'month', hist: true },
-  '1Y':  { range: 12,  unit: 'month', hist: true },
-  // Full year views
-  '2020': { year: true, hist: true },
-  '2021': { year: true, hist: true },
-  '2022': { year: true, hist: true },
-  '2023': { year: true, hist: true },
-  '2024': { year: true, hist: true },
-  '2025': { year: true, hist: true },
-  '2026': { year: true, hist: true },
+// ── Granularity config — candle size ──
+// live TFs use real-time buffers; hist TFs aggregate HIST data
+const GRAN_CONFIG = {
+  '1s':  { ms: 1000,      live: true },
+  '1m':  { ms: 60000,     live: true },
+  '5m':  { ms: 300000,    live: true },
+  '15m': { ms: 900000,    live: true },
+  '1h':  { ms: 3600000,   live: true },
+  '4h':  { ms: 14400000,  live: true },
+  '1D':  { ms: 86400000,  live: true,  histMs: 86400000  },
+  '1W':  { ms: 604800000, live: false, histMs: 604800000 },
+  '1M':  { ms: null,      live: false, histMs: null      }, // monthly = 1 candle per month
 };
 
-// Current state
-let currentTF = '1m';
+// ── Range config — window of data to display ──
+// live = show live buffers; months/year = slice from HIST
+const RANGE_CONFIG = {
+  'live': { live: true },
+  '1D':   { months: null, days: 1   },
+  '1W':   { months: null, days: 7   },
+  '1M':   { months: 1               },
+  '3M':   { months: 3               },
+  '1Y':   { months: 12              },
+  '2020': { year: '2020'            },
+  '2021': { year: '2021'            },
+  '2022': { year: '2022'            },
+  '2023': { year: '2023'            },
+  '2024': { year: '2024'            },
+  '2025': { year: '2025'            },
+  '2026': { year: '2026'            },
+};
 
-// Live candle aggregation
-// candle buffer: map of tf -> { currentCandle, candles[] }
+// Current state — two independent axes
+let currentGran = '1D';   // candle granularity
+let currentRange = 'live'; // data window
+
+// Keep TF_CONFIG alias for live buffer keys (backward compat with feedPrice)
+const TF_CONFIG = GRAN_CONFIG; // same object, alias
+let currentTF = currentGran;   // alias for feedPrice live check
+
+// Live candle aggregation buffers — only for live-capable granularities
 const candleBuffers = {};
-Object.keys(TF_CONFIG).filter(k => !TF_CONFIG[k].hist).forEach(tf => {
-  candleBuffers[tf] = { currentCandle: null, candles: [] };
+Object.keys(GRAN_CONFIG).filter(k => GRAN_CONFIG[k].live).forEach(gran => {
+  candleBuffers[gran] = { currentCandle: null, candles: [] };
 });
 
 // liveHist kept for legacy compat (app.js may reference it)
@@ -107,160 +113,169 @@ function makeCandle(t, o, h, l, c) {
   return { time: Math.floor(t / 1000), open: o, high: h, low: l, close: c };
 }
 
-// Feed a new price into live TF buffers
+// ── Feed price into live buffers ──
 function feedPrice(p, nowMs) {
   liveHist.push(+p.toFixed(0));
   if (liveHist.length > 500) liveHist.shift();
 
-  Object.keys(candleBuffers).forEach(tf => {
-    const tfMs = TF_CONFIG[tf].ms;
-    const buf = candleBuffers[tf];
-    const bucketTs = floorToTF(nowMs, tfMs);
+  Object.keys(candleBuffers).forEach(gran => {
+    const granMs = GRAN_CONFIG[gran].ms;
+    const buf = candleBuffers[gran];
+    const bucketTs = floorToTF(nowMs, granMs);
 
     if (!buf.currentCandle || buf.currentCandle._bucketTs !== bucketTs) {
-      // Close previous candle
       if (buf.currentCandle) {
-        const { _bucketTs, ...cleanCandle } = buf.currentCandle;
-        buf.candles.push(cleanCandle);
-        if (buf.candles.length > 1000) buf.candles.shift();
+        const { _bucketTs, ...clean } = buf.currentCandle;
+        buf.candles.push(clean);
+        if (buf.candles.length > 2000) buf.candles.shift();
       }
-      // Open new candle
-      buf.currentCandle = {
-        _bucketTs: bucketTs,
-        time: Math.floor(bucketTs / 1000),
-        open: p, high: p, low: p, close: p
-      };
+      buf.currentCandle = { _bucketTs: bucketTs, time: Math.floor(bucketTs / 1000), open: p, high: p, low: p, close: p };
     } else {
-      // Update current candle
       buf.currentCandle.high = Math.max(buf.currentCandle.high, p);
-      buf.currentCandle.low = Math.min(buf.currentCandle.low, p);
+      buf.currentCandle.low  = Math.min(buf.currentCandle.low,  p);
       buf.currentCandle.close = p;
     }
-
-    // Live update the chart if this TF is active
-    if (tf === currentTF) {
-      const { _bucketTs, ...display } = buf.currentCandle;
-      renderLiveUpdate(display, buf.candles);
-    }
   });
+
+  // Live-update chart if range is live
+  if (currentRange === 'live' && candleBuffers[currentGran]) {
+    const buf = candleBuffers[currentGran];
+    const { _bucketTs, ...display } = buf.currentCandle;
+    const all = [...buf.candles, display];
+    const map = new Map(); all.forEach(c => map.set(c.time, c));
+    const sorted = Array.from(map.values()).sort((a,b) => a.time - b.time);
+    candleSeries.setData(sorted);
+    tvChart.timeScale().scrollToRealTime();
+  }
 }
 
-// Update chart with live candle (upsert last candle)
-function renderLiveUpdate(currentCandle, closedCandles) {
-  const all = [...closedCandles, currentCandle];
-  // Deduplicate by time (keep last)
-  const map = new Map();
-  all.forEach(c => map.set(c.time, c));
-  const sorted = Array.from(map.values()).sort((a, b) => a.time - b.time);
-  candleSeries.setData(sorted);
-  tvChart.timeScale().scrollToRealTime();
-}
-
-// ── Build flat OHLC list from ALL HIST years (monthly candles) ──
-function buildAllHistOHLC() {
+// ── Build monthly candles from HIST ──
+// Returns flat list sorted by time, scope filtered by yearFilter (optional)
+function buildMonthlyCandles(yearFilter) {
   const result = [];
-  const years = Object.keys(HIST).sort();
-  for (const yearKey of years) {
-    const h = HIST[yearKey];
-    if (!h) continue;
-    const data = h.d;
-    const year = parseInt(yearKey);
+  const years = yearFilter ? [yearFilter] : Object.keys(HIST).sort();
+  for (const y of years) {
+    const h = HIST[y]; if (!h) continue;
+    const data = h.d, year = parseInt(y);
     for (let i = 0; i < data.length; i++) {
-      const date = new Date(Date.UTC(year, i, 1));
-      const tSec = Math.floor(date.getTime() / 1000);
-      const open = i === 0 ? data[0] : data[i - 1];
+      const tSec = Math.floor(Date.UTC(year, i, 1) / 1000);
+      const open  = i === 0 ? data[0] : data[i-1];
       const close = data[i];
-      const high = Math.max(open, close) * (1 + 0.04 + Math.random() * 0.04);
-      const low  = Math.min(open, close) * (1 - 0.04 - Math.random() * 0.04);
+      const high  = Math.max(open, close) * (1 + 0.03 + Math.random() * 0.05);
+      const low   = Math.min(open, close) * (1 - 0.03 - Math.random() * 0.05);
       result.push({ time: tSec, open, high, low, close });
     }
   }
-  // Deduplicate by time
+  const map = new Map(); result.forEach(c => map.set(c.time, c));
+  return Array.from(map.values()).sort((a,b) => a.time - b.time);
+}
+
+// Aggregate monthly candles into weekly or daily candles
+function aggregateCandles(monthly, granMs) {
+  if (!granMs) return monthly; // monthly gran = keep as-is
   const map = new Map();
-  result.forEach(c => map.set(c.time, c));
-  return Array.from(map.values()).sort((a, b) => a.time - b.time);
-}
-
-// ── Historical OHLC from a single year ──
-function buildHistOHLC(yearKey) {
-  const h = HIST[yearKey];
-  if (!h) return [];
-  const data = h.d;
-  const year = parseInt(yearKey);
-  const result = [];
-  for (let i = 0; i < data.length; i++) {
-    const date = new Date(Date.UTC(year, i, 1));
-    const tSec = Math.floor(date.getTime() / 1000);
-    const open = i === 0 ? data[0] : data[i - 1];
-    const close = data[i];
-    const high = Math.max(open, close) * (1 + 0.04 + Math.random() * 0.06);
-    const low  = Math.min(open, close) * (1 - 0.04 - Math.random() * 0.06);
-    result.push({ time: tSec, open, high, low, close });
+  for (const m of monthly) {
+    // distribute monthly data across days of the month (linear interpolation)
+    const monthMs = m.time * 1000;
+    const daysInMonth = new Date(new Date(monthMs).getUTCFullYear(), new Date(monthMs).getUTCMonth()+1, 0).getUTCDate();
+    const dayMs = 86400000;
+    // synthesize daily candles within the month
+    for (let d = 0; d < daysInMonth; d++) {
+      const dayTs = Math.floor((monthMs + d * dayMs) / granMs) * granMs;
+      const t = Math.floor(dayTs / 1000);
+      const frac = d / daysInMonth;
+      const p = m.open + (m.close - m.open) * frac + (Math.random() - 0.5) * Math.abs(m.high - m.low) * 0.3;
+      if (!map.has(t)) {
+        map.set(t, { time: t, open: p, high: p, low: p, close: p });
+      } else {
+        const c = map.get(t);
+        c.high  = Math.max(c.high, p);
+        c.low   = Math.min(c.low,  p);
+        c.close = p;
+      }
+    }
   }
-  return result;
+  return Array.from(map.values()).sort((a,b) => a.time - b.time);
 }
 
-// ── Slice last N months/days from all HIST data ──
-function buildRangeOHLC(range, unit) {
-  const all = buildAllHistOHLC();
-  if (all.length === 0) return [];
+// ── Get cutoff timestamp for a range ──
+function getRangeCutoff(rangeCfg) {
   const nowMs = Date.now();
-  let cutoffMs;
-  if (unit === 'month') {
-    const d = new Date(nowMs);
-    d.setMonth(d.getMonth() - range);
-    cutoffMs = d.getTime();
-  } else {
-    cutoffMs = nowMs - range * 86400000;
+  if (rangeCfg.days)   return Math.floor((nowMs - rangeCfg.days * 86400000) / 1000);
+  if (rangeCfg.months) {
+    const d = new Date(nowMs); d.setMonth(d.getMonth() - rangeCfg.months);
+    return Math.floor(d.getTime() / 1000);
   }
-  const cutoffSec = Math.floor(cutoffMs / 1000);
-  return all.filter(c => c.time >= cutoffSec);
+  return null;
 }
 
-// ── switchTF ──
-function switchTF(tf) {
-  currentTF = tf;
+// ── Main render function ──
+function renderChart() {
+  const granCfg  = GRAN_CONFIG[currentGran];
+  const rangeCfg = RANGE_CONFIG[currentRange];
 
-  // Update button states
-  document.querySelectorAll('.tft').forEach(btn => {
-    btn.classList.toggle('act', btn.dataset.tf === tf);
-  });
-
-  if (TF_CONFIG[tf] && TF_CONFIG[tf].hist) {
-    let ohlc;
-    if (TF_CONFIG[tf].year) {
-      // Full year view
-      ohlc = buildHistOHLC(tf);
-    } else {
-      // Range view: 3D / 1W / 1M / 3M / 6M / 9M / 1Y
-      ohlc = buildRangeOHLC(TF_CONFIG[tf].range, TF_CONFIG[tf].unit);
+  // — LIVE range: use real-time buffers —
+  if (rangeCfg.live) {
+    if (!granCfg.live || !candleBuffers[currentGran]) {
+      candleSeries.setData([]); return;
     }
-    candleSeries.setData(ohlc);
-    tvChart.timeScale().fitContent();
-  } else {
-    // Live TF view
-    const buf = candleBuffers[tf];
-    if (!buf) return;
-    const all = buf.currentCandle
-      ? [...buf.candles, (() => { const { _bucketTs, ...c } = buf.currentCandle; return c; })()]
-      : [...buf.candles];
-
-    if (all.length === 0) {
-      candleSeries.setData([]);
-    } else {
-      const map = new Map();
-      all.forEach(c => map.set(c.time, c));
-      const sorted = Array.from(map.values()).sort((a, b) => a.time - b.time);
-      candleSeries.setData(sorted);
-      tvChart.timeScale().scrollToRealTime();
-    }
+    const buf = candleBuffers[currentGran];
+    const cur = buf.currentCandle ? [(() => { const { _bucketTs, ...c } = buf.currentCandle; return c; })()] : [];
+    const all = [...buf.candles, ...cur];
+    if (all.length === 0) { candleSeries.setData([]); return; }
+    const map = new Map(); all.forEach(c => map.set(c.time, c));
+    const sorted = Array.from(map.values()).sort((a,b) => a.time - b.time);
+    candleSeries.setData(sorted);
+    tvChart.timeScale().scrollToRealTime();
+    return;
   }
+
+  // — HIST range: build from HIST data —
+  const yearFilter = rangeCfg.year || null;
+  const monthly = buildMonthlyCandles(yearFilter);
+
+  // Apply cutoff if range has days/months
+  let filtered = monthly;
+  const cutoff = getRangeCutoff(rangeCfg);
+  if (cutoff) filtered = monthly.filter(c => c.time >= cutoff);
+
+  // Aggregate to the chosen granularity
+  let ohlc;
+  if (!granCfg.histMs) {
+    // Monthly gran — keep monthly candles
+    ohlc = filtered;
+  } else {
+    ohlc = aggregateCandles(filtered, granCfg.histMs);
+  }
+
+  // Apply cutoff again after aggregation (for short ranges)
+  if (cutoff) ohlc = ohlc.filter(c => c.time >= cutoff);
+
+  candleSeries.setData(ohlc);
+  tvChart.timeScale().fitContent();
 }
 
-// ── TF button listeners ──
-document.querySelectorAll('.tft').forEach(btn => {
-  btn.addEventListener('click', () => switchTF(btn.dataset.tf));
-});
+// ── setGran / setRange ──
+function setGran(gran) {
+  currentGran = gran;
+  currentTF = gran; // keep alias in sync
+  document.querySelectorAll('.tft-gran').forEach(b => b.classList.toggle('act', b.dataset.gran === gran));
+  renderChart();
+}
 
-// Init with default TF
-switchTF(currentTF);
+function setRange(range) {
+  currentRange = range;
+  document.querySelectorAll('.tft-range').forEach(b => b.classList.toggle('act', b.dataset.range === range));
+  renderChart();
+}
+
+// Legacy alias so app.js can still call switchTF for live gran switching
+function switchTF(tf) { setGran(tf); }
+
+// ── Button listeners ──
+document.querySelectorAll('.tft-gran').forEach(b  => b.addEventListener('click',  () => setGran(b.dataset.gran)));
+document.querySelectorAll('.tft-range').forEach(b => b.addEventListener('click', () => setRange(b.dataset.range)));
+
+// Init
+setGran(currentGran);
+setRange(currentRange);

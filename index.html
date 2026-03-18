@@ -147,35 +147,36 @@
 
 <!-- CHART -->
 <div class="chart-card">
-  <div class="tf-row">
-    <!-- Live timeframes -->
-    <button class="tft" data-tf="1s">1s</button>
-    <button class="tft act" data-tf="1m">1m</button>
-    <button class="tft" data-tf="5m">5m</button>
-    <button class="tft" data-tf="15m">15m</button>
-    <button class="tft" data-tf="1h">1h</button>
-    <button class="tft" data-tf="4h">4h</button>
-    <button class="tft" data-tf="1D">1D</button>
-    <!-- Separator -->
+  <!-- Row 1: Granularity (candle size) -->
+  <div class="tf-row tf-row-gran">
+    <span class="tf-row-label">Candle</span>
+    <button class="tft tft-gran" data-gran="1s">1s</button>
+    <button class="tft tft-gran" data-gran="1m">1m</button>
+    <button class="tft tft-gran" data-gran="5m">5m</button>
+    <button class="tft tft-gran" data-gran="15m">15m</button>
+    <button class="tft tft-gran" data-gran="1h">1h</button>
+    <button class="tft tft-gran" data-gran="4h">4h</button>
+    <button class="tft tft-gran act" data-gran="1D">1D</button>
+    <button class="tft tft-gran" data-gran="1W">1W</button>
+    <button class="tft tft-gran" data-gran="1M">1M</button>
+  </div>
+  <!-- Row 2: Range (window) -->
+  <div class="tf-row tf-row-range">
+    <span class="tf-row-label">Range</span>
+    <button class="tft tft-range act" data-range="live">Live</button>
+    <button class="tft tft-range" data-range="1D">1D</button>
+    <button class="tft tft-range" data-range="1W">1W</button>
+    <button class="tft tft-range" data-range="1M">1M</button>
+    <button class="tft tft-range" data-range="3M">3M</button>
+    <button class="tft tft-range" data-range="1Y">1Y</button>
     <span class="tf-sep">·</span>
-    <!-- Range views -->
-    <button class="tft tft-hist" data-tf="3D">3D</button>
-    <button class="tft tft-hist" data-tf="1W">1W</button>
-    <button class="tft tft-hist" data-tf="1M">1M</button>
-    <button class="tft tft-hist" data-tf="3M">3M</button>
-    <button class="tft tft-hist" data-tf="6M">6M</button>
-    <button class="tft tft-hist" data-tf="9M">9M</button>
-    <button class="tft tft-hist" data-tf="1Y">1Y</button>
-    <!-- Separator -->
-    <span class="tf-sep">·</span>
-    <!-- Historical years -->
-    <button class="tft tft-hist" data-tf="2020">2020</button>
-    <button class="tft tft-hist" data-tf="2021">2021</button>
-    <button class="tft tft-hist" data-tf="2022">2022</button>
-    <button class="tft tft-hist" data-tf="2023">2023</button>
-    <button class="tft tft-hist" data-tf="2024">2024</button>
-    <button class="tft tft-hist" data-tf="2025">2025</button>
-    <button class="tft tft-hist" data-tf="2026">2026</button>
+    <button class="tft tft-range tft-hist" data-range="2020">2020</button>
+    <button class="tft tft-range tft-hist" data-range="2021">2021</button>
+    <button class="tft tft-range tft-hist" data-range="2022">2022</button>
+    <button class="tft tft-range tft-hist" data-range="2023">2023</button>
+    <button class="tft tft-range tft-hist" data-range="2024">2024</button>
+    <button class="tft tft-range tft-hist" data-range="2025">2025</button>
+    <button class="tft tft-range tft-hist" data-range="2026">2026</button>
   </div>
   <div class="chart-wrap" id="chartContainer"></div>
 </div>
