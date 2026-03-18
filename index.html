@@ -86,6 +86,28 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .dca-steps-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
 .dca-step-btn{padding:2px 8px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
 .dca-step-btn.act{background:rgba(247,147,26,.12);color:var(--orange);border-color:rgba(247,147,26,.35);}
+.dca-use-range{display:flex;align-items:center;gap:5px;margin-bottom:8px;cursor:pointer;font-size:10px;color:var(--text2);}
+.dca-use-range input{accent-color:var(--orange);cursor:pointer;}
+.dca-range-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.dca-range-box{display:flex;flex-direction:column;gap:3px;}
+.dca-range-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);}
+.dca-range-input{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;font-size:11px;font-family:inherit;color:var(--text);font-variant-numeric:tabular-nums;outline:none;width:100%;}
+.dca-range-input:focus{border-color:var(--orange);}
+.dca-range-input::placeholder{color:var(--text3);}
+.dca-table{width:100%;border-collapse:collapse;margin-bottom:4px;}
+.dca-table th{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:3px 4px;text-align:right;border-bottom:0.5px solid var(--border);}
+.dca-table th:first-child{text-align:left;}
+.dca-table td{font-size:10px;padding:3px 4px;font-variant-numeric:tabular-nums;text-align:right;border-bottom:0.5px solid rgba(255,255,255,.03);}
+.dca-table td:first-child{text-align:left;color:var(--text3);}
+.dca-table tr:last-child td{border-bottom:none;}
+.dca-td-buy{color:#4ade80;}
+.dca-td-sell{color:#a78bfa;}
+.dca-pnl-row{display:flex;justify-content:space-between;align-items:center;padding:6px 4px 0;border-top:0.5px solid var(--border);margin-top:2px;font-size:10px;gap:8px;flex-wrap:wrap;}
+.dca-pnl-label{color:var(--text3);}
+.dca-pnl-val{font-weight:700;font-variant-numeric:tabular-nums;}
+.dca-pnl-pos{color:#4ade80;}
+.dca-pnl-neg{color:#f87171;}
+/* single order fallback */
 .dca-preview{display:flex;flex-direction:column;gap:4px;}
 .dca-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;gap:6px;}
 .dca-row-label{color:var(--text3);}
@@ -320,7 +342,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
             <button class="dca-step-btn" data-steps="10">10×</button>
           </div>
         </div>
-        <div class="dca-preview" id="dca-preview"></div>
+        <label class="dca-use-range">
+          <input type="checkbox" id="dca-use-range-chk">
+          <span data-i18n="dcaUseRange">Custom price range</span>
+        </label>
+        <div class="dca-range-row" id="dca-range-inputs" style="display:none;">
+          <div class="dca-range-box">
+            <span class="dca-range-label" data-i18n="dcaFrom">From ($)</span>
+            <input type="number" class="dca-range-input" id="dca-price-from" placeholder="e.g. 70000">
+          </div>
+          <div class="dca-range-box">
+            <span class="dca-range-label" data-i18n="dcaTo">To ($)</span>
+            <input type="number" class="dca-range-input" id="dca-price-to" placeholder="e.g. 80000">
+          </div>
+        </div>
+        <div id="dca-preview"></div>
       </div>
       <div class="trade-val-row">
         <span class="trade-est" data-i18n="totalOrder">Total order ≈ <strong id="tval">$0</strong></span>
@@ -676,58 +712,87 @@ const EVTS={
 // ═══════════════════════════════════════════════════════
 // WEBSOCKET
 // ═══════════════════════════════════════════════════════
-let ws=null,wsReconnectTimer=null,wsPingInterval=null,wsConnected=false;
+// ── PRICE SOURCE STRATEGY ──────────────────────────────
+// 1. Binance WS  wss://data-stream.binance.vision  (free, no auth, production-grade)
+// 2. CoinGecko REST polling every 15s              (free, no auth, fallback)
+// 3. Pure simulation                               (last resort)
+// ───────────────────────────────────────────────────────
+let ws=null,wsReconnectTimer=null,wsConnected=false;
+let pollingInterval=null;
+let reconnectDelay=2000; // exponential backoff: 2s → 4s → 8s → max 30s
+
+function setStatus(mode){
+  const s=document.getElementById('ws-status'),l=document.getElementById('ws-label'),src=document.getElementById('price-source');
+  if(mode==='connecting'){s.className='ws-status';l.textContent=t('connecting');src.textContent=t('livePrice');}
+  else if(mode==='live-ws'){s.className='ws-status connected';l.textContent='Live · Binance';src.textContent=t('livePrice');}
+  else if(mode==='live-poll'){s.className='ws-status connected';l.textContent='Live · CoinGecko';src.textContent=t('livePrice');}
+  else{s.className='ws-status simulated';l.textContent=t('simulated');src.textContent=t('livePrice');}
+}
+
+function applyLivePrice(p){
+  if(!p||p<=0)return;
+  livePrice=p;
+  if(price===0){OPEN=p;hi=p;lo=p;price=p;document.getElementById('m-open').textContent=fmt(p);}
+  else if(priceMode==='live'){price=p;}
+}
+
+// ── FALLBACK: CoinGecko REST polling ──
+function startPolling(){
+  if(pollingInterval)return;
+  setStatus('live-poll');
+  const poll=()=>{
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&precision=2')
+      .then(r=>{if(!r.ok)throw new Error();return r.json();})
+      .then(d=>{const p=d?.bitcoin?.usd;if(p>0){applyLivePrice(p);setStatus('live-poll');}else fallbackSim();})
+      .catch(()=>fallbackSim());
+  };
+  poll();
+  pollingInterval=setInterval(poll,15000);
+}
+
+// ── PRIMARY: Binance public market stream ──
 function connectWS(){
-  const statusEl=document.getElementById('ws-status');
-  const labelEl=document.getElementById('ws-label');
-  const sourceEl=document.getElementById('price-source');
   if(wsReconnectTimer){clearTimeout(wsReconnectTimer);wsReconnectTimer=null;}
-  if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
   if(ws){try{ws.close();}catch(e){}ws=null;}
-  statusEl.className='ws-status';
-  labelEl.textContent=t('connecting');
+  wsConnected=false;
+  setStatus('connecting');
   try{
-    ws=new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin');
+    // Public Binance market data endpoint — no API key, no auth
+    ws=new WebSocket('wss://data-stream.binance.vision/ws/btcusdt@miniTicker');
     ws.onopen=()=>{
       wsConnected=true;
-      statusEl.className='ws-status connected';
-      labelEl.textContent=t('liveLabel');
-      sourceEl.textContent=t('livePrice');
-      wsPingInterval=setInterval(()=>{
-        if(ws&&ws.readyState===WebSocket.OPEN){try{ws.send(JSON.stringify({type:'ping'}));}catch(e){}}
-      },20000);
+      reconnectDelay=2000; // reset backoff on success
+      if(pollingInterval){clearInterval(pollingInterval);pollingInterval=null;}
+      setStatus('live-ws');
     };
     ws.onmessage=e=>{
       try{
         const d=JSON.parse(e.data);
-        if(d.bitcoin){
-          const p=parseFloat(d.bitcoin);
-          if(p>0){
-            livePrice=p;
-            if(price===0){OPEN=p;hi=p;lo=p;price=p;document.getElementById('m-open').textContent=fmt(p);}
-            else if(priceMode==='live'){price=p;}
-          }
-        }
+        // miniTicker: { e, E, s, c (close/last price), o, h, l, v, q }
+        if(d.c){applyLivePrice(parseFloat(d.c));}
       }catch(err){}
     };
-    ws.onerror=()=>{wsConnected=false;if(livePrice===0)fallbackSim();else scheduleReconnect();};
+    ws.onerror=()=>{
+      wsConnected=false;
+      if(!pollingInterval)startPolling(); // ensure user sees a price
+    };
     ws.onclose=()=>{
       wsConnected=false;
-      if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
-      if(livePrice===0)fallbackSim();else scheduleReconnect();
+      if(!pollingInterval)startPolling();
+      // Exponential backoff reconnect
+      wsReconnectTimer=setTimeout(()=>{
+        reconnectDelay=Math.min(reconnectDelay*2,30000);
+        connectWS();
+      },reconnectDelay);
     };
-  }catch(err){fallbackSim();}
+  }catch(err){
+    startPolling();
+  }
 }
-function scheduleReconnect(){
-  const s=document.getElementById('ws-status'),l=document.getElementById('ws-label');
-  s.className='ws-status simulated';l.textContent=t('reconnecting');
-  wsReconnectTimer=setTimeout(connectWS,5000);
-}
+
 function fallbackSim(){
-  const s=document.getElementById('ws-status'),l=document.getElementById('ws-label'),src=document.getElementById('price-source');
-  s.className='ws-status simulated';l.textContent=t('simulated');src.textContent=t('simulated');
   if(price===0){price=74382;OPEN=74382;hi=74382;lo=74382;livePrice=74382;document.getElementById('m-open').textContent=fmt(74382);}
-  if(!wsReconnectTimer)wsReconnectTimer=setTimeout(connectWS,30000);
+  setStatus('sim');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -822,27 +887,70 @@ function getOrderQty(side){
     return{qty:usd/price,usdValue:usd};
   }
 }
-function buildDcaOrders(type,totalQty){
-  const orders=[];
-  for(let i=0;i<dcaSteps;i++)orders.push({type,qty:totalQty/dcaSteps});
-  return orders;
+// DCA range state
+let dcaUseRange=false,dcaPriceFrom=0,dcaPriceTo=0;
+
+function getDcaPrices(type){
+  const n=dcaSteps;
+  if(n===1) return [price];
+  if(dcaUseRange&&dcaPriceFrom>0&&dcaPriceTo>0){
+    const lo2=Math.min(dcaPriceFrom,dcaPriceTo);
+    const hi2=Math.max(dcaPriceFrom,dcaPriceTo);
+    // For buys: start high end, go to low end (best average)
+    // For sells: start low end, go to high end (best average)
+    if(type==='buy') return Array.from({length:n},(_,i)=>hi2-(hi2-lo2)*(i/(n-1)));
+    else             return Array.from({length:n},(_,i)=>lo2+(hi2-lo2)*(i/(n-1)));
+  }
+  // Default ±0.5% per step
+  if(type==='buy') return Array.from({length:n},(_,i)=>price*(1-(i*0.005)));
+  else             return Array.from({length:n},(_,i)=>price*(1+(i*0.005)));
 }
+
+function buildDcaOrders(type,totalQty){
+  const prices=getDcaPrices(type);
+  return prices.map(p=>({type,qty:totalQty/dcaSteps,targetPrice:p}));
+}
+
 function renderDcaPreview(){
   const preview=document.getElementById('dca-preview');
   if(!price){preview.innerHTML='';return;}
   const sb=getOrderQty('buy'),ss=getOrderQty('sell');
+
   if(dcaSteps===1){
     const buyUsd=sb?sb.usdValue:0,sellUsd=ss?ss.usdValue:0;
-    preview.innerHTML=`<div class="dca-row"><span class="dca-row-label">${t('singleOrder')}</span><span class="dca-row-val">${fmt(buyUsd)} / ${fmt(sellUsd)}</span></div>`;
+    preview.innerHTML=`<div class="dca-row"><span class="dca-row-label">${t('singleOrder')}</span><span class="dca-row-val">${fmt(Math.round(buyUsd))} / ${fmt(Math.round(sellUsd))}</span></div>`;
     return;
   }
-  let html='';
-  for(let i=0;i<Math.min(dcaSteps,3);i++){
-    const buyP=price*(1-(i*0.005)),sellP=price*(1+(i*0.005));
-    const buyQ=sb?(sb.qty/dcaSteps):0,sellQ=ss?(ss.qty/dcaSteps):0;
-    html+=`<div class="dca-row"><span class="dca-row-label">#${i+1}</span><span class="dca-row-buy">▲ ${buyQ.toFixed(4)} @ ~${fmt(buyP)}</span><span class="dca-row-sell">▼ ${sellQ.toFixed(4)} @ ~${fmt(sellP)}</span></div>`;
+
+  const buyPrices=getDcaPrices('buy');
+  const sellPrices=getDcaPrices('sell');
+  const buyQPerStep=sb&&sb.qty>0?sb.qty/dcaSteps:0;
+  const sellQPerStep=ss&&ss.qty>0?ss.qty/dcaSteps:0;
+
+  // Build full table — all rows visible
+  let html=`<table class="dca-table"><thead><tr><th>#</th><th style="color:#4ade80;">Buy $</th><th style="color:#4ade80;">BTC</th><th style="color:#a78bfa;">Sell $</th><th style="color:#a78bfa;">BTC</th></tr></thead><tbody>`;
+  for(let i=0;i<dcaSteps;i++){
+    html+=`<tr><td>${i+1}</td><td class="dca-td-buy">${fmt(Math.round(buyPrices[i]))}</td><td class="dca-td-buy">${buyQPerStep>0?buyQPerStep.toFixed(5):'—'}</td><td class="dca-td-sell">${fmt(Math.round(sellPrices[i]))}</td><td class="dca-td-sell">${sellQPerStep>0?sellQPerStep.toFixed(5):'—'}</td></tr>`;
   }
-  if(dcaSteps>3)html+=`<div class="dca-row"><span class="dca-row-label" style="font-style:italic;">+ ${dcaSteps-3} ${t('moreOrders')}</span></div>`;
+  html+=`</tbody></table>`;
+
+  // Summary: avg prices + PNL
+  const avgBuyExec=buyPrices.reduce((a,b)=>a+b,0)/dcaSteps;
+  const avgSellExec=sellPrices.reduce((a,b)=>a+b,0)/dcaSteps;
+  const totalSellProceeds=sellQPerStep>0?sellPrices.reduce((a,p)=>a+p*sellQPerStep,0):0;
+  const costBasis=avgBuy>0&&ss&&ss.qty>0?avgBuy*ss.qty:0;
+  const sellPnl=costBasis>0?totalSellProceeds-costBasis:null;
+
+  html+=`<div class="dca-pnl-row">`;
+  if(buyQPerStep>0) html+=`<span class="dca-pnl-label">Avg buy: <strong style="color:#4ade80;">${fmt(Math.round(avgBuyExec))}</strong></span>`;
+  if(sellQPerStep>0 && sellPnl!==null){
+    const pos=sellPnl>=0;
+    const pct=((sellPnl/costBasis)*100).toFixed(1);
+    html+=`<span class="dca-pnl-label">P&L: <span class="dca-pnl-val ${pos?'dca-pnl-pos':'dca-pnl-neg'}">${pos?'+':''}${fmt(Math.round(sellPnl))} (${pos?'+':''}${pct}%)</span></span>`;
+  } else if(sellQPerStep>0){
+    html+=`<span class="dca-pnl-label">Avg sell: <strong style="color:#a78bfa;">${fmt(Math.round(avgSellExec))}</strong></span>`;
+  }
+  html+=`</div>`;
   preview.innerHTML=html;
 }
 function updateAmountDisplay(){
@@ -908,6 +1016,13 @@ document.querySelectorAll('.dca-step-btn').forEach(b=>b.addEventListener('click'
 }));
 document.getElementById('btc-input').addEventListener('input',updateAmountDisplay);
 document.getElementById('usd-input').addEventListener('input',updateAmountDisplay);
+document.getElementById('dca-use-range-chk').addEventListener('change',function(){
+  dcaUseRange=this.checked;
+  document.getElementById('dca-range-inputs').style.display=dcaUseRange?'grid':'none';
+  renderDcaPreview();
+});
+document.getElementById('dca-price-from').addEventListener('input',function(){dcaPriceFrom=parseFloat(this.value)||0;renderDcaPreview();});
+document.getElementById('dca-price-to').addEventListener('input',function(){dcaPriceTo=parseFloat(this.value)||0;renderDcaPreview();});
 
 // ═══════════════════════════════════════════════════════
 // PORTFOLIO
