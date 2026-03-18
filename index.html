@@ -32,6 +32,15 @@
   </div>
 </div>
 
+<!-- METRICS — sous le header -->
+<div class="metrics">
+  <div class="met"><div class="ml" data-i18n="open">Open</div><div class="mv" id="m-open">—</div></div>
+  <div class="met"><div class="ml" data-i18n="high">High 24h</div><div class="mv" id="m-high">—</div></div>
+  <div class="met"><div class="ml" data-i18n="low">Low 24h</div><div class="mv" id="m-low">—</div></div>
+  <div class="met"><div class="ml">FedWatch Hold</div><div class="mv">98.9%</div></div>
+  <div class="met"><div class="ml" data-i18n="dominance">BTC Dominance</div><div class="mv">59.1%</div></div>
+</div>
+
 <!-- PRICE STRIP -->
 <div class="price-strip">
   <span class="big-price" id="pdisplay">$—</span>
@@ -46,6 +55,19 @@
 
 <!-- SIM BANNER (legacy hidden, replaced by sim-pill in header) -->
 <div class="sim-banner" id="sim-banner" aria-hidden="true"></div>
+
+<!-- PORTFOLIO -->
+<div class="port">
+  <div class="sec-title" data-i18n="portfolio">Portfolio</div>
+  <div class="pgrid">
+    <div class="pi"><div class="pil" data-i18n="cashUsd">Cash USD</div><div class="piv" id="p-cash">$100,000</div></div>
+    <div class="pi"><div class="pil" data-i18n="btcHeld2">BTC held</div><div class="piv" id="p-btc">0.0000 BTC</div></div>
+    <div class="pi"><div class="pil" data-i18n="btcValue">BTC value</div><div class="piv" id="p-bval">$0</div></div>
+    <div class="pi"><div class="pil" data-i18n="total">Total</div><div class="piv" id="p-tot">$100,000</div></div>
+    <div class="pi"><div class="pil">P&L</div><div class="piv" id="p-pnl">$0 (0.00%)</div></div>
+    <div class="pi"><div class="pil" data-i18n="avgBuy">Avg. buy price</div><div class="piv" id="p-avg">—</div></div>
+  </div>
+</div>
 
 <!-- TRADE WIDGET -->
 <div class="trade-widget">
@@ -136,26 +158,15 @@
   </div>
 </div>
 
-<!-- METRICS -->
-<div class="metrics">
-  <div class="met"><div class="ml" data-i18n="open">Open</div><div class="mv" id="m-open">—</div></div>
-  <div class="met"><div class="ml" data-i18n="high">High 24h</div><div class="mv" id="m-high">—</div></div>
-  <div class="met"><div class="ml" data-i18n="low">Low 24h</div><div class="mv" id="m-low">—</div></div>
-  <div class="met"><div class="ml">FedWatch Hold</div><div class="mv">98.9%</div></div>
-  <div class="met"><div class="ml" data-i18n="dominance">BTC Dominance</div><div class="mv">59.1%</div></div>
-</div>
-
 <!-- CHART -->
 <div class="chart-card">
   <!-- Row 1: Granularity (candle size) -->
   <div class="tf-row tf-row-gran">
     <span class="tf-row-label">Candle</span>
-    <button class="tft tft-gran" data-gran="1s">1s</button>
     <button class="tft tft-gran" data-gran="1m">1m</button>
-    <button class="tft tft-gran" data-gran="5m">5m</button>
     <button class="tft tft-gran" data-gran="15m">15m</button>
     <button class="tft tft-gran" data-gran="1h">1h</button>
-    <button class="tft tft-gran" data-gran="4h">4h</button>
+    <button class="tft tft-gran" data-gran="12h">12h</button>
     <button class="tft tft-gran act" data-gran="1D">1D</button>
     <button class="tft tft-gran" data-gran="1W">1W</button>
     <button class="tft tft-gran" data-gran="1M">1M</button>
@@ -169,6 +180,7 @@
     <button class="tft tft-range" data-range="1M">1M</button>
     <button class="tft tft-range" data-range="3M">3M</button>
     <button class="tft tft-range" data-range="1Y">1Y</button>
+    <button class="tft tft-range" data-range="custom">Custom…</button>
     <span class="tf-sep">·</span>
     <button class="tft tft-range tft-hist" data-range="2020">2020</button>
     <button class="tft tft-range tft-hist" data-range="2021">2021</button>
@@ -178,7 +190,16 @@
     <button class="tft tft-range tft-hist" data-range="2025">2025</button>
     <button class="tft tft-range tft-hist" data-range="2026">2026</button>
   </div>
-  <div class="chart-wrap" id="chartContainer"></div>
+  <!-- Custom date picker (hidden by default) -->
+  <div class="custom-range-picker" id="custom-range-picker">
+    <span class="tf-row-label" style="min-width:auto;">From</span>
+    <input type="date" class="date-input" id="custom-from">
+    <span class="tf-row-label" style="min-width:auto;margin-left:6px;">To</span>
+    <input type="date" class="date-input" id="custom-to">
+    <button class="tft" id="custom-range-apply" style="margin-left:6px;">Apply</button>
+    <button class="tft" id="custom-range-cancel">Cancel</button>
+  </div>
+  <div id="chartContainer"></div>
 </div>
 
 <!-- UPDATE BAR -->
@@ -217,19 +238,6 @@
       <div class="col-header"><div class="col-icon col-icon-dn"></div><span class="col-label col-label-dn" data-i18n="bearish">Bearish Scenarios</span></div>
       <div class="col-evts" id="col-bear"></div>
     </div>
-  </div>
-</div>
-
-<!-- PORTFOLIO -->
-<div class="port">
-  <div class="sec-title" data-i18n="portfolio">Portfolio</div>
-  <div class="pgrid">
-    <div class="pi"><div class="pil" data-i18n="cashUsd">Cash USD</div><div class="piv" id="p-cash">$100,000</div></div>
-    <div class="pi"><div class="pil" data-i18n="btcHeld2">BTC held</div><div class="piv" id="p-btc">0.0000 BTC</div></div>
-    <div class="pi"><div class="pil" data-i18n="btcValue">BTC value</div><div class="piv" id="p-bval">$0</div></div>
-    <div class="pi"><div class="pil" data-i18n="total">Total</div><div class="piv" id="p-tot">$100,000</div></div>
-    <div class="pi"><div class="pil">P&L</div><div class="piv" id="p-pnl">$0 (0.00%)</div></div>
-    <div class="pi"><div class="pil" data-i18n="avgBuy">Avg. buy price</div><div class="piv" id="p-avg">—</div></div>
   </div>
 </div>
 
