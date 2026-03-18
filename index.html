@@ -566,20 +566,29 @@ const EVTS={
 // ═══════════════════════════════════════════════════════
 // WEBSOCKET — CoinCap
 // ═══════════════════════════════════════════════════════
-let ws=null,wsReconnectTimer=null;
+let ws=null,wsReconnectTimer=null,wsPingInterval=null,wsConnected=false;
 function connectWS(){
   const statusEl=document.getElementById('ws-status');
   const labelEl=document.getElementById('ws-label');
   const sourceEl=document.getElementById('price-source');
+  if(wsReconnectTimer){clearTimeout(wsReconnectTimer);wsReconnectTimer=null;}
+  if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
+  if(ws){try{ws.close();}catch(e){}ws=null;}
   statusEl.className='ws-status';
   labelEl.textContent='Connexion…';
   try{
     ws=new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin');
     ws.onopen=()=>{
+      wsConnected=true;
       statusEl.className='ws-status connected';
       labelEl.textContent='Live · CoinCap';
       sourceEl.textContent='Prix live';
-      addLog('🔗 WebSocket CoinCap connecté');
+      // Ping every 20s to keep connection alive
+      wsPingInterval=setInterval(()=>{
+        if(ws&&ws.readyState===WebSocket.OPEN){
+          try{ws.send(JSON.stringify({type:'ping'}));}catch(e){}
+        }
+      },20000);
     };
     ws.onmessage=e=>{
       try{
@@ -588,24 +597,33 @@ function connectWS(){
           const p=parseFloat(d.bitcoin);
           if(p>0){
             livePrice=p;
-            if(price===0){
-              price=p;OPEN=p;hi=p;lo=p;
-              document.getElementById('m-open').textContent=fmt(p);
+            if(price===0||priceMode==='live'){
+              if(price===0){OPEN=p;hi=p;lo=p;document.getElementById('m-open').textContent=fmt(p);}
+              price=p;
             }
           }
         }
       }catch(err){}
     };
-    ws.onerror=()=>{fallbackSim();};
-    ws.onclose=()=>{
+    ws.onerror=()=>{
+      wsConnected=false;
       if(livePrice===0)fallbackSim();
-      else{
-        statusEl.className='ws-status simulated';
-        labelEl.textContent='Reconnexion…';
-        wsReconnectTimer=setTimeout(connectWS,5000);
-      }
+      else scheduleReconnect();
+    };
+    ws.onclose=()=>{
+      wsConnected=false;
+      if(wsPingInterval){clearInterval(wsPingInterval);wsPingInterval=null;}
+      if(livePrice===0)fallbackSim();
+      else scheduleReconnect();
     };
   }catch(err){fallbackSim();}
+}
+function scheduleReconnect(){
+  const statusEl=document.getElementById('ws-status');
+  const labelEl=document.getElementById('ws-label');
+  statusEl.className='ws-status simulated';
+  labelEl.textContent='Reconnexion dans 5s…';
+  wsReconnectTimer=setTimeout(connectWS,5000);
 }
 function fallbackSim(){
   const statusEl=document.getElementById('ws-status');
@@ -615,7 +633,8 @@ function fallbackSim(){
   labelEl.textContent='Simulé (fallback)';
   sourceEl.textContent='Prix simulé';
   if(price===0){price=74382;OPEN=74382;hi=74382;lo=74382;livePrice=74382;}
-  addLog('⚠️ WebSocket indisponible — mode simulation');
+  // Try to reconnect every 30s even in fallback
+  if(!wsReconnectTimer)wsReconnectTimer=setTimeout(connectWS,30000);
 }
 
 // ═══════════════════════════════════════════════════════
