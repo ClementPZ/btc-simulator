@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bitcoin Simulator — March 18, 2026</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://unpkg.com/lightweight-charts@5.0.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -153,21 +153,31 @@
 <!-- CHART -->
 <div class="chart-card">
   <div class="tf-row">
-    <button class="tft act" data-tf="live">Live</button>
-    <button class="tft" data-tf="2020">2020</button>
-    <button class="tft" data-tf="2021">2021</button>
-    <button class="tft" data-tf="2022">2022</button>
-    <button class="tft" data-tf="2023">2023</button>
-    <button class="tft" data-tf="2024">2024</button>
-    <button class="tft" data-tf="2025">2025</button>
-    <button class="tft" data-tf="2026">2026</button>
+    <!-- Live timeframes -->
+    <button class="tft" data-tf="1s">1s</button>
+    <button class="tft act" data-tf="1m">1m</button>
+    <button class="tft" data-tf="5m">5m</button>
+    <button class="tft" data-tf="15m">15m</button>
+    <button class="tft" data-tf="1h">1h</button>
+    <button class="tft" data-tf="4h">4h</button>
+    <button class="tft" data-tf="1D">1D</button>
+    <!-- Separator -->
+    <span class="tf-sep">·</span>
+    <!-- Historical years -->
+    <button class="tft tft-hist" data-tf="2020">2020</button>
+    <button class="tft tft-hist" data-tf="2021">2021</button>
+    <button class="tft tft-hist" data-tf="2022">2022</button>
+    <button class="tft tft-hist" data-tf="2023">2023</button>
+    <button class="tft tft-hist" data-tf="2024">2024</button>
+    <button class="tft tft-hist" data-tf="2025">2025</button>
+    <button class="tft tft-hist" data-tf="2026">2026</button>
   </div>
-  <div class="chart-wrap"><canvas id="btcChart"></canvas></div>
+  <div class="chart-wrap" id="chartContainer"></div>
 </div>
 
 <!-- UPDATE BAR -->
 <div class="update-bar">
-  <span class="update-left" data-i18n="updateBar">Live price via <strong>CoinCap WebSocket</strong> · Educational simulation</span>
+  <span class="update-left" data-i18n="updateBar">Live price via <strong>Binance WebSocket</strong> · Educational simulation</span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <span style="font-size:10px;color:var(--text3);" data-i18n="volatility">Sim. volatility</span>
     <div class="vol-row">
@@ -224,7 +234,7 @@
 <!-- FOOTER -->
 <div class="footer">
   Bitcoin Simulator · <span data-i18n="footerSim">Educational simulation only · Not financial advice</span><br>
-  <span data-i18n="footerSrc">Live price:</span> <a href="https://coincap.io" target="_blank">CoinCap WebSocket</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
+  <span data-i18n="footerSrc">Live price:</span> <a href="https://binance.com" target="_blank">Binance WebSocket</a> · <a href="https://coindesk.com" target="_blank">CoinDesk</a> · <a href="https://cnbc.com" target="_blank">CNBC</a> · <a href="https://cmegroup.com" target="_blank">CME FedWatch</a>
 </div>
 
 <!-- MODAL -->

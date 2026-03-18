@@ -126,10 +126,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 /* ── CHART ── */
 .chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
-.tf-row{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
-.tft{padding:3px 10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;}
-.tft.act{background:var(--surface2);color:var(--text);border-color:var(--border2);}
-.chart-wrap{position:relative;width:100%;height:200px;}
+.tf-row{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.tft{padding:3px 10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
+.tft:hover{background:var(--surface2);color:var(--text2);}
+.tft.act{background:var(--surface2);color:var(--text);border-color:var(--orange);}
+.tft-hist{border-color:rgba(255,255,255,.1);}
+.tf-sep{color:var(--border2);font-size:14px;padding:0 2px;user-select:none;}
+/* TradingView chart container */
+#chartContainer{position:relative;width:100%;height:240px;border-radius:var(--radius-sm);overflow:hidden;}
 
 /* ── SIM BANNER ── */
 .sim-banner{background:rgba(247,147,26,.08);border:0.5px solid rgba(247,147,26,.3);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--orange);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}

@@ -32,9 +32,10 @@ function tick() {
   hi = Math.max(hi, price);
   lo = Math.min(lo, price);
 
-  liveHist.push(+price.toFixed(0));
-  if (liveHist.length > 120) liveHist.shift();
+  // Feed price into TradingView chart buffers
+  feedPrice(price, Date.now());
 
+  // Update price display
   const chg = price - OPEN, pct = OPEN > 0 ? (chg / OPEN) * 100 : 0;
   document.getElementById('pdisplay').textContent = fmt(price);
   const cd = document.getElementById('cdisplay'), sg = chg >= 0 ? '+' : '';
@@ -43,12 +44,6 @@ function tick() {
   document.getElementById('m-high').textContent = fmt(hi);
   document.getElementById('m-low').textContent = fmt(lo);
   document.getElementById('m-cap').textContent = '$' + (price * SUPPLY / 1e12).toFixed(2) + 'T';
-
-  if (currentTF === 'live') {
-    chart.data.datasets[0].data = [...liveHist];
-    chart.data.labels = liveHist.map(() => '');
-    chart.update('none');
-  }
 
   updateAmountDisplay();
   updatePort();
